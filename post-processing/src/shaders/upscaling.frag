@@ -11,18 +11,15 @@ layout(binding = 3) uniform int step;
 vec4 sample_tent(vec2 scale) {
     vec4 d = vec4(1.0, 1.0, -1.0, 0.0);
 
-    vec4 s = vec4(0);
-    s = s + texture(sampler2D(first_texture, default_sampler), uv.xy - d.xy * scale);
-    s = s + texture(sampler2D(first_texture, default_sampler), uv.xy - d.wy * scale) * 2.0;
-    s = s + texture(sampler2D(first_texture, default_sampler), uv.xy - d.zy * scale);
-
-    s = s + texture(sampler2D(first_texture, default_sampler), uv.xy + d.zw * scale) * 2.0;
-    s = s + texture(sampler2D(first_texture, default_sampler), uv.xy       		   ) * 4.0;
-    s = s + texture(sampler2D(first_texture, default_sampler), uv.xy + d.xw * scale) * 2.0;
-
-    s = s + texture(sampler2D(first_texture, default_sampler), uv.xy + d.zy * scale);
-    s = s + texture(sampler2D(first_texture, default_sampler), uv.xy + d.wy * scale) * 2.0;
-    s = s + texture(sampler2D(first_texture, default_sampler), uv.xy + d.xy * scale);
+    vec4 s =  texture(sampler2D(first_texture, default_sampler), uv.xy - d.xy * scale)
+            + texture(sampler2D(first_texture, default_sampler), uv.xy - d.wy * scale) * 2.0
+            + texture(sampler2D(first_texture, default_sampler), uv.xy - d.zy * scale)
+            + texture(sampler2D(first_texture, default_sampler), uv.xy + d.zw * scale) * 2.0
+            + texture(sampler2D(first_texture, default_sampler), uv.xy       		   ) * 4.0
+            + texture(sampler2D(first_texture, default_sampler), uv.xy + d.xw * scale) * 2.0
+            + texture(sampler2D(first_texture, default_sampler), uv.xy + d.zy * scale)
+            + texture(sampler2D(first_texture, default_sampler), uv.xy + d.wy * scale) * 2.0
+            + texture(sampler2D(first_texture, default_sampler), uv.xy + d.xy * scale);
 
     return s / 16.0;
 }

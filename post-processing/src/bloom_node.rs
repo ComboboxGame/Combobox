@@ -1,34 +1,31 @@
 use std::num::NonZeroU32;
 
-use bevy::core_pipeline::clear_color::ClearColorConfig;
-use bevy::core_pipeline::core_2d::{MainPass2dNode, Transparent2d};
+
+
 use bevy::prelude::*;
 use bevy::render::camera::ExtractedCamera;
 use bevy::render::mesh::PrimitiveTopology;
 use bevy::render::render_graph::{Node, NodeRunError, RenderGraphContext, SlotInfo, SlotType};
-use bevy::render::render_phase::{DrawFunctions, RenderPhase, TrackedRenderPass};
+use bevy::render::render_phase::{TrackedRenderPass};
 use bevy::render::render_resource::{
-    BindGroupLayout, BindGroupLayoutEntry, BindingType, BlendState, Buffer, BufferBindingType,
-    BufferUsages, BufferVec, CachedRenderPipelineId, ColorTargetState, ColorWrites, FilterMode,
+    BindGroupLayout, BindGroupLayoutEntry, BindingType, BlendState, BufferBindingType, BufferVec, CachedRenderPipelineId, ColorTargetState, ColorWrites,
     FragmentState, FrontFace, MultisampleState, PipelineCache, PolygonMode, PrimitiveState,
     RenderPipelineDescriptor, Sampler, SamplerBindingType, ShaderStages, Texture, TextureDimension,
     TextureFormat, TextureSampleType, TextureUsages, TextureView, TextureViewDimension,
     UniformBuffer, VertexBufferLayout, VertexFormat, VertexState, VertexStepMode,
 };
 use bevy::render::renderer::{RenderContext, RenderDevice, RenderQueue};
-use bevy::render::texture::{BevyDefault, TextureCache};
-use bevy::render::view::{ExtractedView, ViewTarget};
+use bevy::render::texture::{TextureCache};
+use bevy::render::view::{ExtractedView};
 use bevy::utils::HashMap;
 use wgpu::{
-    BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindingResource, Extent3d,
-    ImageCopyTexture, LoadOp, Operations, RenderPassColorAttachment, RenderPassDescriptor,
-    SamplerDescriptor, TextureDescriptor, TextureViewDescriptor,
+    BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindingResource, Extent3d, Operations, RenderPassColorAttachment, RenderPassDescriptor, TextureDescriptor, TextureViewDescriptor,
 };
 use crate::CUSTOM_DOWNSCALING;
 use crate::CUSTOM_UPSCALING;
 use crate::CUSTOM_DEFAULT_VERT;
 use crate::utils::{
-    create_default_quad, create_default_sampler, create_linear_sampler, ScreenVertex,
+    create_default_quad, create_linear_sampler, ScreenVertex,
 };
 
 pub struct BloomNode {
@@ -88,11 +85,11 @@ impl Node for BloomNode {
 
         let input = graph.get_input_texture(Self::IN_TEXTURE)?;
 
-        let (camera, bloom_targets, camera_2d) =
+        let (_camera, bloom_targets, _camera_2d) =
             if let Ok(result) = self.query.get_manual(world, view_entity) {
                 result
             } else {
-                graph.set_output(Self::OUT_TEXTURE, input.clone());
+                graph.set_output(Self::OUT_TEXTURE, input.clone()).unwrap();
                 return Ok(());
             };
 
@@ -207,7 +204,7 @@ impl Node for BloomNode {
             }
         }
 
-        graph.set_output(Self::OUT_TEXTURE, bloom_targets.get_view(1, 0));
+        graph.set_output(Self::OUT_TEXTURE, bloom_targets.get_view(1, 0)).unwrap();
 
         Ok(())
     }
@@ -423,7 +420,7 @@ pub fn prepare_bloom_targets(
     let mut textures_map = HashMap::default();
 
     for (entity, camera) in &cameras {
-        if let Some(mut target_size) = camera.physical_target_size.clone() {
+        if let Some(target_size) = camera.physical_target_size.clone() {
             let mut textures_arr = vec![];
             let mut views_arr = vec![];
 

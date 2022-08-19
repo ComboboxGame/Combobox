@@ -1,42 +1,27 @@
-use std::ops::Range;
-
 use bevy::app::{App, Plugin};
-use bevy::asset::load_internal_asset;
-use bevy::core_pipeline::core_2d::{extract_core_2d_camera_phases, MainPass2dNode, Transparent2d};
+use bevy::core_pipeline::core_2d::MainPass2dNode;
 use bevy::core_pipeline::core_2d::graph;
 use bevy::ecs::prelude::*;
-use bevy::prelude::{Assets, Camera2d, Handle, HandleUntyped, Image, Msaa, Shader};
+use bevy::prelude::{Assets, HandleUntyped, Msaa, Shader};
 use bevy::reflect::TypeUuid;
 use bevy::render::{
-    camera::Camera,
-    Extract,
-    extract_component::ExtractComponentPlugin,
-    render_graph::{RenderGraph, SlotInfo, SlotType},
-    render_phase::{
-        batch_phase_system, BatchedPhaseItem, CachedRenderPipelinePhaseItem, DrawFunctionId,
-        DrawFunctions, EntityPhaseItem, PhaseItem, RenderPhase, sort_phase_system,
-    },
-    render_resource::CachedRenderPipelineId, RenderApp, RenderStage,
+    render_graph::RenderGraph,
+    RenderApp, RenderStage,
 };
 use bevy::render::camera::ExtractedCamera;
-use bevy::render::render_asset::RenderAssets;
-use bevy::render::render_graph::RunGraphOnViewNode;
-use bevy::render::render_resource::{
-    Extent3d, Operations, ShaderStage, TextureDescriptor, TextureDimension, TextureFormat,
-    TextureUsages, TextureView,
-};
+use bevy::render::render_resource::{Extent3d, Operations, ShaderStage, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages, TextureView, UniformBuffer};
 use bevy::render::renderer::RenderDevice;
-use bevy::render::texture::{BevyDefault, TextureCache};
-use bevy::render::view::{ExtractedWindows, WindowSystem};
-use bevy::sprite::Material2dPlugin;
-use bevy::ui::{draw_ui_graph, UiPassNode};
-use bevy::utils::{FloatOrd, HashMap};
+use bevy::render::texture::{TextureCache};
+use bevy::render::view::WindowSystem;
+use bevy::ui::draw_ui_graph;
+use bevy::utils::HashMap;
 pub use color_material_custom::ColorMaterialCustom;
 use wgpu::{Color, RenderPassColorAttachment};
 
 use crate::bloom_node::*;
 use crate::color_material_custom::*;
-use crate::main_pass_2d_node::*;
+use crate::lights::{extract_point_lights_2d, PointLightsUniform};
+
 use crate::main_pass_2d_node::MainPass2dNodeCustom;
 use crate::tone_mapping_node::*;
 
@@ -44,6 +29,7 @@ mod bloom_node;
 mod color_material_custom;
 mod main_pass_2d_node;
 mod tone_mapping_node;
+mod lights;
 mod utils;
 
 pub struct Core2dCustomPlugin;
@@ -112,16 +98,23 @@ impl Plugin for Core2dCustomPlugin {
             prepare_bloom_targets.after(WindowSystem::Prepare),
         );
 
+        render_app.insert_resource(UniformBuffer::<PointLightsUniform>::default());
+
+        render_app.add_system_to_stage(
+            RenderStage::Extract,
+            extract_point_lights_2d
+        );
+
         let pass_node_2d = MainPass2dNodeCustom::new(&mut render_app.world);
         let bloom_node = BloomNode::new(&mut render_app.world);
         let tone_mapping_node = ToneMappingNode::new(&mut render_app.world);
 
         let mut graph = render_app.world.resource_mut::<RenderGraph>();
-        let mut draw_2d_graph = graph
+        let draw_2d_graph = graph
             .get_sub_graph_mut(bevy::core_pipeline::core_2d::graph::NAME)
             .unwrap();
 
-        draw_2d_graph.remove_node(graph::node::MAIN_PASS);
+        draw_2d_graph.remove_node(graph::node::MAIN_PASS).unwrap();
 
         draw_2d_graph.add_node(graph::node::MAIN_PASS, pass_node_2d);
         draw_2d_graph.add_node(BloomNode::NAME, bloom_node);
@@ -176,25 +169,6 @@ impl Plugin for Core2dCustomPlugin {
             .add_node_edge(ToneMappingNode::NAME, draw_ui_graph::node::UI_PASS)
             .unwrap();
     }
-}
-
-fn get_ui_graph(render_app: &mut App) -> RenderGraph {
-    let ui_pass_node = UiPassNode::new(&mut render_app.world);
-    let mut ui_graph = RenderGraph::default();
-    ui_graph.add_node(draw_ui_graph::node::UI_PASS, ui_pass_node);
-    let input_node_id = ui_graph.set_input(vec![SlotInfo::new(
-        draw_ui_graph::input::VIEW_ENTITY,
-        SlotType::Entity,
-    )]);
-    ui_graph
-        .add_slot_edge(
-            input_node_id,
-            draw_ui_graph::input::VIEW_ENTITY,
-            draw_ui_graph::node::UI_PASS,
-            UiPassNode::IN_VIEW,
-        )
-        .unwrap();
-    ui_graph
 }
 
 #[derive(Component)]

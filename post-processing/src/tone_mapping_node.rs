@@ -1,14 +1,11 @@
-use bevy::core::{Pod, Zeroable};
-use bevy::core_pipeline::clear_color::ClearColorConfig;
-use bevy::core_pipeline::core_2d::{MainPass2dNode, Transparent2d};
 use bevy::prelude::*;
 use bevy::render::camera::ExtractedCamera;
 use bevy::render::mesh::PrimitiveTopology;
 use bevy::render::render_graph::{Node, NodeRunError, RenderGraphContext, SlotInfo, SlotType};
-use bevy::render::render_phase::{DrawFunctions, RenderPhase, TrackedRenderPass};
+use bevy::render::render_phase::TrackedRenderPass;
 use bevy::render::render_resource::{
-    BindGroupLayout, BindGroupLayoutEntry, BindingType, BlendState, BufferUsages, BufferVec,
-    CachedRenderPipelineId, ColorTargetState, ColorWrites, FilterMode, FragmentState, FrontFace,
+    BindGroupLayout, BindGroupLayoutEntry, BindingType, BlendState, BufferVec,
+    CachedRenderPipelineId, ColorTargetState, ColorWrites, FragmentState, FrontFace,
     MultisampleState, PipelineCache, PolygonMode, PrimitiveState, RenderPipelineDescriptor,
     Sampler, SamplerBindingType, ShaderStages, TextureFormat, TextureSampleType,
     TextureViewDimension, VertexBufferLayout, VertexFormat, VertexState, VertexStepMode,
@@ -17,10 +14,11 @@ use bevy::render::renderer::{RenderContext, RenderDevice, RenderQueue};
 use bevy::render::texture::BevyDefault;
 use bevy::render::view::{ExtractedView, ViewTarget};
 use wgpu::{
-    BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindingResource, Extent3d,
-    ImageCopyTexture, LoadOp, Operations, RenderPassColorAttachment, RenderPassDescriptor,
-    SamplerDescriptor,
-};use crate::CUSTOM_DEFAULT_VERT;
+    BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindingResource,
+    Operations, RenderPassColorAttachment, RenderPassDescriptor,
+};
+
+use crate::CUSTOM_DEFAULT_VERT;
 use crate::CUSTOM_TONEMAPPING;
 use crate::utils::{create_default_quad, create_default_sampler, ScreenVertex};
 
@@ -76,7 +74,7 @@ impl Node for ToneMappingNode {
         let view_entity = graph.get_input_entity(Self::IN_VIEW)?;
         let input = graph.get_input_texture(Self::IN_TEXTURE)?;
 
-        let (camera, target, camera_2d) =
+        let (camera, target, _camera_2d) =
             if let Ok(result) = self.query.get_manual(world, view_entity) {
                 result
             } else {
@@ -92,7 +90,7 @@ impl Node for ToneMappingNode {
             depth_stencil_attachment: None,
         };
 
-        let mut render_pass = render_context
+        let render_pass = render_context
             .command_encoder
             .begin_render_pass(&pass_descriptor);
 

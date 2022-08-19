@@ -25,28 +25,27 @@ vec4 quadratic_threshold(vec4 color, float threshold, vec3 curve) {
 }
 
 vec4 sample_13(vec2 scale) {
-    vec4 a = texture(SAMPLER(color_texture, default_sampler), uv.xy + vec2(-1.0, -1.0) * scale);
-    vec4 b = texture(SAMPLER(color_texture, default_sampler), uv.xy + vec2( 0.0, -1.0) * scale);
-    vec4 c = texture(SAMPLER(color_texture, default_sampler), uv.xy + vec2( 1.0, -1.0) * scale);
-    vec4 d = texture(SAMPLER(color_texture, default_sampler), uv.xy + vec2(-0.5, -0.5) * scale);
-    vec4 e = texture(SAMPLER(color_texture, default_sampler), uv.xy + vec2( 0.5, -0.5) * scale);
-    vec4 f = texture(SAMPLER(color_texture, default_sampler), uv.xy + vec2(-1.0,  0.0) * scale);
-    vec4 g = texture(SAMPLER(color_texture, default_sampler), uv.xy + vec2( 0.0,  0.0) * scale);
-    vec4 h = texture(SAMPLER(color_texture, default_sampler), uv.xy + vec2( 1.0,  0.0) * scale);
-    vec4 i = texture(SAMPLER(color_texture, default_sampler), uv.xy + vec2(-0.5,  0.5) * scale);
-    vec4 j = texture(SAMPLER(color_texture, default_sampler), uv.xy + vec2( 0.5,  0.5) * scale);
-    vec4 k = texture(SAMPLER(color_texture, default_sampler), uv.xy + vec2(-1.0,  1.0) * scale);
-    vec4 l = texture(SAMPLER(color_texture, default_sampler), uv.xy + vec2( 0.0,  1.0) * scale);
-    vec4 m = texture(SAMPLER(color_texture, default_sampler), uv.xy + vec2( 1.0,  1.0) * scale);
-    vec2 div = (1.0 / 4.0) * vec2(0.5, 0.125);
+    vec4 a = texture(sampler2D(color_texture, default_sampler), uv.xy + vec2(-1.0, -1.0) * scale);
+    vec4 b = texture(sampler2D(color_texture, default_sampler), uv.xy + vec2( 0.0, -1.0) * scale);
+    vec4 c = texture(sampler2D(color_texture, default_sampler), uv.xy + vec2( 1.0, -1.0) * scale);
+    vec4 d = texture(sampler2D(color_texture, default_sampler), uv.xy + vec2(-0.5, -0.5) * scale);
+    vec4 e = texture(sampler2D(color_texture, default_sampler), uv.xy + vec2( 0.5, -0.5) * scale);
+    vec4 f = texture(sampler2D(color_texture, default_sampler), uv.xy + vec2(-1.0,  0.0) * scale);
+    vec4 g = texture(sampler2D(color_texture, default_sampler), uv.xy + vec2( 0.0,  0.0) * scale);
+    vec4 h = texture(sampler2D(color_texture, default_sampler), uv.xy + vec2( 1.0,  0.0) * scale);
+    vec4 i = texture(sampler2D(color_texture, default_sampler), uv.xy + vec2(-0.5,  0.5) * scale);
+    vec4 j = texture(sampler2D(color_texture, default_sampler), uv.xy + vec2( 0.5,  0.5) * scale);
+    vec4 k = texture(sampler2D(color_texture, default_sampler), uv.xy + vec2(-1.0,  1.0) * scale);
+    vec4 l = texture(sampler2D(color_texture, default_sampler), uv.xy + vec2( 0.0,  1.0) * scale);
+    vec4 m = texture(sampler2D(color_texture, default_sampler), uv.xy + vec2( 1.0,  1.0) * scale);
 
-    vec4 o = (d + e + i + j) * div.x;
-    o = o + (a + b + g + f) * div.y;
-    o = o + (b + c + h + g) * div.y;
-    o = o + (f + g + l + k) * div.y;
-    o = o + (g + h + m + l) * div.y;
+    vec4 res = (d + e + i + j) * 0.5
+             + (a + b + g + f) * 0.125
+             + (b + c + h + g) * 0.125
+             + (f + g + l + k) * 0.125
+             + (g + h + m + l) * 0.125;
 
-    return o;
+    return res * 0.25;
 }
 
 void main() {

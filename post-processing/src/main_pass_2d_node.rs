@@ -1,15 +1,15 @@
 use bevy::core_pipeline::clear_color::ClearColorConfig;
-use bevy::core_pipeline::core_2d::{MainPass2dNode, Transparent2d};
+use bevy::core_pipeline::core_2d::{Transparent2d};
 use bevy::prelude::*;
 use bevy::render::camera::ExtractedCamera;
 use bevy::render::render_graph::{
-    Node, NodeRunError, RenderGraphContext, RunSubGraphError, SlotInfo, SlotType,
+    Node, NodeRunError, RenderGraphContext, SlotInfo, SlotType,
 };
 use bevy::render::render_phase::{DrawFunctions, RenderPhase, TrackedRenderPass};
 use bevy::render::renderer::RenderContext;
-use bevy::render::view::{ExtractedView, ViewTarget};
-use std::borrow::Cow;
-use wgpu::{Extent3d, ImageCopyTexture, LoadOp, Operations, RenderPassDescriptor};
+use bevy::render::view::{ExtractedView};
+
+use wgpu::{LoadOp, Operations, RenderPassDescriptor};
 
 use crate::ViewTargetCustom;
 

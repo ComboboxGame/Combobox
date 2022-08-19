@@ -1,16 +1,15 @@
 use bevy::app::{App, Plugin};
-use bevy::asset::{load_internal_asset, Assets, Handle, HandleUntyped};
+use bevy::asset::{Assets, Handle};
 use bevy::math::Vec4;
-use bevy::prelude::*;
+
 use bevy::reflect::TypeUuid;
 use bevy::render::mesh::MeshVertexBufferLayout;
 use bevy::render::{
-    color::Color, prelude::Shader, render_asset::RenderAssets, render_resource::*, texture::Image,
+    color::Color, render_asset::RenderAssets, render_resource::*, texture::Image,
 };
 
 use bevy::sprite::{
-    ColorMaterialFlags, Material2d, Material2dKey, Material2dPlugin, MaterialMesh2dBundle,
-    COLOR_MATERIAL_SHADER_HANDLE,
+    ColorMaterialFlags, Material2d, Material2dKey, Material2dPlugin,
 };
 use crate::CUSTOM_MATERIAL;
 
@@ -117,8 +116,8 @@ impl Material2d for ColorMaterialCustom {
 
     fn specialize(
         descriptor: &mut RenderPipelineDescriptor,
-        layout: &MeshVertexBufferLayout,
-        key: Material2dKey<Self>,
+        _layout: &MeshVertexBufferLayout,
+        _key: Material2dKey<Self>,
     ) -> Result<(), SpecializedMeshPipelineError> {
         // HDR texture
         (*descriptor.fragment.as_mut().unwrap()).targets.clear();

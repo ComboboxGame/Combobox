@@ -1,7 +1,7 @@
 use bevy::core::{Pod, Zeroable};
 use bevy::render::render_resource::{BufferUsages, BufferVec, FilterMode, Sampler};
 use bevy::render::renderer::{RenderDevice, RenderQueue};
-use wgpu::{AddressMode, SamplerBorderColor, SamplerDescriptor};
+use wgpu::{AddressMode, SamplerDescriptor};
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
