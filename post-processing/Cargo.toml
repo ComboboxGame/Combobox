@@ -1,0 +1,11 @@
+[package]
+name = "post-processing"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bevy = {version="0.8.0", features=["filesystem_watcher"]}
+wgpu = "0.13.1"
+bytemuck = "1.12.0"
