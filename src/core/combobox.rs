@@ -7,9 +7,10 @@ use crate::game::{GameState, Material};
 #[derive(Clone, Debug)]
 pub enum ComboboxType {
     Standard { group: u32 },
+    Buf,
     Undo,
-    GravitySetter { direction: Vec2 },
-    GravityActivator,
+    Direction { direction: Vec2 },
+    Gravity,
     Lamp { color: Color },
 }
 
@@ -31,6 +32,46 @@ impl Combobox {
 
     pub fn merge(&self, other: &Combobox) -> Option<Vec<Combobox>> {
         match (&self.box_type, &other.box_type) {
+            (
+                ComboboxType::Standard { group: group1 },
+                ComboboxType::Standard { group: group2 },
+            ) => {
+                if group1 != group2 {
+                    return None;
+                }
+
+                let big_box = Combobox {
+                    size: f32::sqrt(self.size.powf(2.) + other.size.powf(2.)),
+                    box_type: self.box_type.clone(),
+                    combined_from: vec![self.clone(), other.clone()],
+                };
+
+                return Some(vec![big_box]);
+            }
+            (ComboboxType::Standard { .. }, ComboboxType::Buf) => other.merge(self),
+            (ComboboxType::Buf, ComboboxType::Standard { .. }) => {
+                let buffed_box = Combobox {
+                    size: other.size * 2.,
+                    box_type: other.box_type.clone(),
+                    combined_from: vec![self.clone(), other.clone()],
+                };
+
+                return Some(vec![buffed_box]);
+            },
+            (ComboboxType::Undo, _) => {
+                if other.combined_from.len() == 0 {
+                    return None;
+                }
+
+                return Some(other.combined_from.clone());
+            },
+            (_, ComboboxType::Undo) => {
+                if self.combined_from.len() == 0 {
+                    return None;
+                }
+
+                return Some(self.combined_from.clone());
+            }
             (_, _) => None,
         }
     }
@@ -56,8 +97,10 @@ fn combobox_system(
                 continue;
             }
 
-            if (transform_a.translation - transform_b.translation).length()
-                < (combobox_a.size + combobox_b.size) * 0.52
+            if (transform_a.translation - transform_b.translation)
+                .abs()
+                .max_element()
+                < (combobox_a.size + combobox_b.size) * 0.55
             {
                 if let Some(merge) = combobox_a.merge(combobox_b) {
                     for combobox_new in merge {

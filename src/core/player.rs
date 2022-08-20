@@ -3,6 +3,8 @@ use bevy_rapier2d::prelude::{
     Collider, ExternalImpulse, LockedAxes, QueryFilter, RapierContext, RigidBody, Velocity,
 };
 
+use crate::game::GameState;
+
 #[derive(Component)]
 pub struct PlayerSprite {
     is_turned_left: bool,
@@ -132,14 +134,26 @@ impl Player {
             }
         }
     }
+
+    pub fn camera_follow(
+        mut players: Query<&Transform, With<Player>>,
+        mut cameras: Query<&mut Transform, (With<Camera2d>, Without<Player>)>,
+    ) {
+        for player in players.iter_mut() {
+            for mut camera in cameras.iter_mut() {
+                camera.translation = player.translation * 0.08 + camera.translation * 0.92;
+            }
+        }
+    }
 }
 
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(Player::move_player);
-        app.add_system(Player::jump_player);
-        app.add_system(PlayerSprite::turn_player);
+        app.add_system_set(SystemSet::on_update(GameState::Game).with_system(Player::move_player));
+        app.add_system_set(SystemSet::on_update(GameState::Game).with_system(Player::jump_player));
+        app.add_system_set(SystemSet::on_update(GameState::Game).with_system(Player::camera_follow));
+        app.add_system_set(SystemSet::on_update(GameState::Game).with_system(PlayerSprite::turn_player));
     }
 }
