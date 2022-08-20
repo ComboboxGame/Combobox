@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+#[derive(Clone, Debug)]
 pub enum ComboboxType {
     Standard { group: u32 },
     Undo,
@@ -8,7 +9,7 @@ pub enum ComboboxType {
     Lamp { color: Color },
 }
 
-#[derive(Component)]
+#[derive(Component, Clone, Debug)]
 pub struct Combobox {
     pub size: f32,
     pub box_type: ComboboxType,
