@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = { version="0.8.0", default-features=false, features=["bevy_ui", "bevy_text", "bevy_winit", "filesystem_watcher"] }
+bevy = { version="0.8.0", default-features=false, features=["bevy_ui", "bevy_text", "bevy_winit", "png", "filesystem_watcher"] }
 post-processing={ path="post-processing" }
 bevy_rapier2d = "0.16.1"
 

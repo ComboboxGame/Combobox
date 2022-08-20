@@ -17,5 +17,7 @@ impl Plugin for CorePlugin {
 
         #[cfg(debug_assertions)]
         app.add_plugin(RapierDebugRenderPlugin::default());
+
+        app.add_plugin(PlayerPlugin);
     }
 }

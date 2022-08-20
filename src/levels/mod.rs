@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::core::MapBuilder;
+use crate::core::{MapBuilder, Player};
 use crate::game::{GameState, Material};
 use crate::levels::level0::setup_level0;
 
@@ -27,6 +27,7 @@ pub struct LevelRoot;
 fn setup(
     level: Res<Levels>,
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<Material>>,
 ) {
@@ -44,6 +45,8 @@ fn setup(
                 }
             }
         });
+
+    Player::spawn(commands, asset_server, Vec2::new(0., 0.));
 }
 
 fn cleanup(mut commands: Commands, roots: Query<Entity, With<LevelRoot>>) {
