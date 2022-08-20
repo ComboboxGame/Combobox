@@ -31,6 +31,7 @@ fn main() {
     app.add_plugins(DefaultPlugins);
 
     // Custom hdr rendering plugin with post processing (bloom + tone mapping)
+    #[cfg(not(debug_assertions))]
     app.add_plugin(post_processing::Core2dCustomPlugin);
 
     // Show fps in corner of the screen

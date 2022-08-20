@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 pub enum ComboboxType {
-    Standard { group: u32, can_subtract: bool },
+    Standard { group: u32 },
     Undo,
     GravitySetter { direction: Vec2 },
     GravityActivator,
@@ -10,7 +10,17 @@ pub enum ComboboxType {
 
 #[derive(Component)]
 pub struct Combobox {
-    size: u32,
-    box_type: ComboboxType,
-    combined_from: Vec<Combobox>,
+    pub size: f32,
+    pub box_type: ComboboxType,
+    pub combined_from: Vec<Combobox>,
+}
+
+impl Combobox {
+    pub fn new(size: f32, box_type: ComboboxType) -> Combobox {
+        Self {
+            size,
+            box_type,
+            combined_from: vec![],
+        }
+    }
 }

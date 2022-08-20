@@ -13,33 +13,29 @@ pub struct Wall;
 pub struct WallBundle {
     wall: Wall,
     rigid_body: RigidBody,
+    collider: Collider,
 
     #[bundle]
     mesh: MaterialMesh2dBundle<Material>,
 }
 
-impl<'b> MapBuilder<'b> {
-    pub fn build_wall_from_to_xy<'w, 's, 'a, 'c>(
-        &'c mut self,
-        parent: &'c mut ChildBuilder<'w, 's, 'a>,
+impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
+    pub fn spawn_wall_from_to_xy(
+        &mut self,
         left: f32,
         right: f32,
         top: f32,
         bottom: f32,
     ) -> EntityCommands<'w, 's, '_> {
-        self.build_wall_from_to(parent, Vec2::new(left, bottom), Vec2::new(right, top))
+        self.spawn_wall_from_to(Vec2::new(left, bottom), Vec2::new(right, top))
     }
 
-    pub fn build_wall_from_to<'w, 's, 'a, 'c>(
-        &'c mut self,
-        parent: &'c mut ChildBuilder<'w, 's, 'a>,
-        from: Vec2,
-        to: Vec2,
-    ) -> EntityCommands<'w, 's, '_> {
+    pub fn spawn_wall_from_to(&mut self, from: Vec2, to: Vec2) -> EntityCommands<'w, 's, '_> {
         let size = from.max(to) - from.min(to);
         let translation = (from + to) * 0.5;
-        parent.spawn_bundle(WallBundle {
+        self.builder.spawn_bundle(WallBundle {
             wall: Wall::default(),
+            collider: Collider::cuboid(size.x * 0.5, size.y * 0.5),
             rigid_body: RigidBody::Fixed,
             mesh: MaterialMesh2dBundle {
                 mesh: Mesh2dHandle(self.meshes.add(Quad::new(size).into())),

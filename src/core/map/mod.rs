@@ -1,29 +1,37 @@
 use bevy::prelude::*;
 
+pub use combobox::*;
 pub use wall::*;
 
 use crate::game::Material;
 
+mod combobox;
 mod wall;
 
-pub struct MapBuilder<'a> {
-    meshes: &'a mut Assets<Mesh>,
-    materials: &'a mut Assets<Material>,
+pub struct MapBuilder<'w, 's, 'a, 'b> {
+    builder: &'b mut ChildBuilder<'w, 's, 'a>,
+    meshes: &'b mut Assets<Mesh>,
+    materials: &'b mut Assets<Material>,
 
     wall_material: Handle<Material>,
+    box_material: Handle<Material>,
 }
 
-impl<'a> MapBuilder<'a> {
+impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
     pub fn new(
-        meshes: &'a mut Assets<Mesh>,
-        materials: &'a mut Assets<Material>,
-    ) -> MapBuilder<'a> {
+        builder: &'b mut ChildBuilder<'w, 's, 'a>,
+        meshes: &'b mut Assets<Mesh>,
+        materials: &'b mut Assets<Material>,
+    ) -> MapBuilder<'w, 's, 'a, 'b> {
         let wall_material = materials.add(Color::rgb_u8(255, 212, 120).into());
+        let box_material = materials.add(Color::rgb_u8(255, 140, 90).into());
 
         MapBuilder {
+            builder,
             meshes,
             materials,
             wall_material,
+            box_material,
         }
     }
 }

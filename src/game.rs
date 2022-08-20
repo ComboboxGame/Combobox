@@ -1,7 +1,13 @@
 use crate::gui::GuiPlugin;
 use crate::levels::LevelsPlugin;
 use bevy::prelude::*;
+use crate::core::CorePlugin;
 
+
+#[cfg(debug_assertions)]
+pub type Material = ColorMaterial;
+
+#[cfg(not(debug_assertions))]
 pub type Material = post_processing::ColorMaterialCustom;
 
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
@@ -23,6 +29,7 @@ impl Plugin for GamePlugin {
         app.add_state(GameState::Game); // todo: start from MainMenu
         app.add_startup_system(setup_camera);
         app.add_plugin(LevelsPlugin);
+        app.add_plugin(CorePlugin);
         app.add_plugin(GuiPlugin);
     }
 }

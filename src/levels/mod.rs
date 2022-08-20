@@ -36,11 +36,11 @@ fn setup(
         .insert_bundle(VisibilityBundle::default())
         .insert_bundle(TransformBundle::default())
         .with_children(|parent| {
-            let mut builder = MapBuilder::new(&mut *meshes, &mut *materials);
+            let mut builder = MapBuilder::new(parent, &mut *meshes, &mut *materials);
             match *level {
                 Levels::NoLevel => {}
                 Levels::Level0 => {
-                    setup_level0(&mut builder, parent);
+                    setup_level0(&mut builder);
                 }
             }
         });
