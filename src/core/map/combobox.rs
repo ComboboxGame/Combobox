@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 use bevy_rapier2d::prelude::{Collider, LockedAxes, RigidBody};
 
-use crate::core::{Combobox, ComboboxType, MapBuilder};
+use crate::core::{Combobox, ComboboxState, ComboboxType, MapBuilder};
 use crate::game::Material;
 
 #[derive(Bundle)]
@@ -15,6 +15,7 @@ pub struct ComboboxBundle {
     #[bundle]
     pub mesh_bundle: MaterialMesh2dBundle<Material>,
     pub locked_axes: LockedAxes,
+    pub combobox_state: ComboboxState,
 }
 
 impl ComboboxBundle {
@@ -34,7 +35,7 @@ impl ComboboxBundle {
         };
         ComboboxBundle {
             combobox: combobox.clone(),
-            rigid_body: RigidBody::Dynamic,
+            rigid_body: RigidBody::KinematicPositionBased,
             collider: Collider::cuboid(combobox.size * 0.5, combobox.size * 0.5),
             mesh_bundle: MaterialMesh2dBundle {
                 mesh: Mesh2dHandle(meshes.add(Quad::new(Vec2::ONE * combobox.size).into())),
@@ -43,6 +44,7 @@ impl ComboboxBundle {
                 ..MaterialMesh2dBundle::default()
             },
             locked_axes: LockedAxes::ROTATION_LOCKED,
+            combobox_state: ComboboxState::SpawningAnimation(0.0),
         }
     }
 }

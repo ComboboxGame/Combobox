@@ -30,6 +30,7 @@ fn setup(
     asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<Material>>,
+    mut clear_color: ResMut<ClearColor>,
 ) {
     commands
         .spawn()
@@ -37,7 +38,8 @@ fn setup(
         .insert_bundle(VisibilityBundle::default())
         .insert_bundle(TransformBundle::default())
         .with_children(|parent| {
-            let mut builder = MapBuilder::new(parent, &mut *meshes, &mut *materials);
+            let mut builder =
+                MapBuilder::new(parent, &mut *meshes, &mut *materials, &mut *clear_color);
             match *level {
                 Levels::NoLevel => {}
                 Levels::Level0 => {
@@ -49,8 +51,14 @@ fn setup(
     Player::spawn(commands, asset_server, Vec2::new(0., 0.));
 }
 
-fn cleanup(mut commands: Commands, roots: Query<Entity, With<LevelRoot>>) {
+fn cleanup(
+    mut commands: Commands,
+    roots: Query<Entity, With<LevelRoot>>,
+    mut clear_color: ResMut<ClearColor>,
+) {
     for root in roots.iter() {
         commands.entity(root).despawn_recursive();
     }
+
+    clear_color.0 = Color::BLACK;
 }

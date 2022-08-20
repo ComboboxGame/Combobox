@@ -121,7 +121,7 @@ impl Player {
                             collider.half_extents().x * (1. - 2. / (i as f32)),
                             collider.half_extents().y,
                         );
-                    
+
                     if hits_floor(entity, start_point) {
                         can_jump = true;
                         break;
@@ -153,7 +153,11 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_update(GameState::Game).with_system(Player::move_player));
         app.add_system_set(SystemSet::on_update(GameState::Game).with_system(Player::jump_player));
-        app.add_system_set(SystemSet::on_update(GameState::Game).with_system(Player::camera_follow));
-        app.add_system_set(SystemSet::on_update(GameState::Game).with_system(PlayerSprite::turn_player));
+        app.add_system_set(
+            SystemSet::on_update(GameState::Game).with_system(Player::camera_follow),
+        );
+        app.add_system_set(
+            SystemSet::on_update(GameState::Game).with_system(PlayerSprite::turn_player),
+        );
     }
 }
