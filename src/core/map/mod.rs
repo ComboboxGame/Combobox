@@ -14,7 +14,6 @@ pub struct MapBuilder<'w, 's, 'a, 'b> {
     materials: &'b mut Assets<Material>,
 
     wall_material: Handle<Material>,
-    box_material: Handle<Material>,
 }
 
 impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
@@ -24,14 +23,12 @@ impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
         materials: &'b mut Assets<Material>,
     ) -> MapBuilder<'w, 's, 'a, 'b> {
         let wall_material = materials.add(Color::rgb_u8(255, 212, 120).into());
-        let box_material = materials.add(Color::rgb_u8(255, 140, 90).into());
 
         MapBuilder {
             builder,
             meshes,
             materials,
             wall_material,
-            box_material,
         }
     }
 }

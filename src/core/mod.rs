@@ -19,5 +19,6 @@ impl Plugin for CorePlugin {
         app.add_plugin(RapierDebugRenderPlugin::default());
 
         app.add_plugin(PlayerPlugin);
+        app.add_plugin(ComboboxPlugin);
     }
 }

@@ -1,8 +1,7 @@
+use crate::core::CorePlugin;
 use crate::gui::GuiPlugin;
 use crate::levels::LevelsPlugin;
 use bevy::prelude::*;
-use crate::core::CorePlugin;
-
 
 #[cfg(debug_assertions)]
 pub type Material = ColorMaterial;
