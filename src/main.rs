@@ -17,7 +17,7 @@ fn main() {
 
     // Infinite FPS for debugging
     app.insert_resource(WindowDescriptor {
-        present_mode: PresentMode::Immediate,
+        present_mode: PresentMode::Fifo,
         ..default()
     });
 
