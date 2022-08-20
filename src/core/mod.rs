@@ -17,6 +17,10 @@ impl Plugin for CorePlugin {
 
         #[cfg(debug_assertions)]
         app.add_plugin(RapierDebugRenderPlugin::default());
+        app.insert_resource(RapierConfiguration {
+            gravity: Vec2::new(0., -9.8 * 50.),
+            ..Default::default()
+        });
 
         app.add_plugin(PlayerPlugin);
     }
