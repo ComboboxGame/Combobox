@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 use bevy_rapier2d::prelude::{Collider, LockedAxes, RigidBody};
 
-use crate::core::{Combobox, MapBuilder};
+use crate::core::{Combobox, ComboboxType, MapBuilder};
 use crate::game::Material;
 
 #[derive(Bundle)]
@@ -24,13 +24,21 @@ impl ComboboxBundle {
         meshes: &mut Assets<Mesh>,
         materials: &mut Assets<Material>,
     ) -> Self {
+        let color = match combobox.box_type {
+            ComboboxType::Standard { .. } => Color::rgb_u8(255, 140, 90),
+            ComboboxType::Buf => Color::rgb_u8(108, 130, 0),
+            ComboboxType::Undo => Color::rgb_u8(152, 88, 255),
+            ComboboxType::Gravity => Color::rgb_u8(211, 42, 42),
+            ComboboxType::Direction { .. } => Color::rgb_u8(255, 182, 193),
+            ComboboxType::Lamp { .. } => Color::rgb_u8(255, 215, 0),
+        };
         ComboboxBundle {
             combobox: combobox.clone(),
             rigid_body: RigidBody::Dynamic,
             collider: Collider::cuboid(combobox.size * 0.5, combobox.size * 0.5),
             mesh_bundle: MaterialMesh2dBundle {
                 mesh: Mesh2dHandle(meshes.add(Quad::new(Vec2::ONE * combobox.size).into())),
-                material: materials.add(Color::rgb_u8(255, 140, 90).into()),
+                material: materials.add(color.into()),
                 transform: Transform::from_xyz(position.x, position.y, 0.0),
                 ..MaterialMesh2dBundle::default()
             },
