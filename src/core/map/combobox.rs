@@ -30,6 +30,7 @@ impl ComboboxBundle {
         position: Vec2,
         meshes: &mut Assets<Mesh>,
         materials: &mut Assets<Material>,
+        assets: &mut AssetServer,
     ) -> Self {
         let color = match combobox.box_type {
             ComboboxType::Standard { .. } => Color::rgb_u8(255, 140, 90),
@@ -39,13 +40,18 @@ impl ComboboxBundle {
             ComboboxType::Direction { .. } => Color::rgb_u8(255, 182, 193),
             ComboboxType::Lamp { .. } => Color::rgb_u8(255, 215, 0),
         };
+        let image = assets.load("images/box-default.png");
+
+        let mut material = Material::from(color);
+        material.texture = Some(image);
+
         ComboboxBundle {
             combobox: combobox.clone(),
             rigid_body: RigidBody::KinematicPositionBased,
             collider: Collider::cuboid(combobox.world_size() * 0.5, combobox.world_size() * 0.5),
             mesh_bundle: MaterialMesh2dBundle {
                 mesh: Mesh2dHandle(meshes.add(Quad::new(Vec2::ONE * combobox.world_size()).into())),
-                material: materials.add(color.into()),
+                material: materials.add(material),
                 transform: Transform::from_xyz(position.x, position.y, 0.0)
                     .with_scale(Vec3::ONE * 0.01),
                 ..MaterialMesh2dBundle::default()
@@ -76,6 +82,7 @@ impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
             position,
             self.meshes,
             self.materials,
+            self.assets,
         ))
     }
 }

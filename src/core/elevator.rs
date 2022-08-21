@@ -33,7 +33,9 @@ fn update(mut elevators: Query<(&mut Transform, &Elevator)>, time: Res<Time>) {
                 transform.translation.x = p.x;
                 transform.translation.y = p.y;
             }
-            ElevatorType::WeightActivated { weight_to_activate: _ } => {
+            ElevatorType::WeightActivated {
+                weight_to_activate: _,
+            } => {
                 todo!()
             }
         }

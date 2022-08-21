@@ -368,6 +368,7 @@ fn merge(
     comboboxes: Query<(Entity, &Parent, &Combobox, &Transform, &ComboboxState)>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<Material>>,
+    mut assets: ResMut<AssetServer>,
 ) {
     'outer: for (i, (a, parent, combobox_a, transform_a, state_a)) in comboboxes.iter().enumerate()
     {
@@ -394,6 +395,7 @@ fn merge(
                                 pos_new,
                                 &mut meshes,
                                 &mut materials,
+                                &mut assets,
                             ))
                             .id();
                         commands.entity(parent.get()).add_child(id);

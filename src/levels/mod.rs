@@ -57,6 +57,8 @@ fn spawn_players(
     spawn_points: Query<(Entity, &SpawnPoint)>,
     players: Query<&Player>,
     asset_server: Res<AssetServer>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<Material>>,
 ) {
     for (entity, spawn_point) in spawn_points.iter() {
         let mut player_exists = false;
@@ -67,7 +69,13 @@ fn spawn_players(
         }
 
         if !player_exists {
-            let player = Player::spawn(&mut commands, &asset_server, spawn_point.id);
+            let player = Player::spawn(
+                &mut commands,
+                &asset_server,
+                &mut meshes,
+                &mut materials,
+                spawn_point.id,
+            );
             commands.entity(entity).add_child(player);
         }
     }
@@ -80,6 +88,7 @@ fn setup(
     mut materials: ResMut<Assets<Material>>,
     mut clear_color: ResMut<ClearColor>,
     mut boundaries: ResMut<MapBoundaries>,
+    mut assets: ResMut<AssetServer>,
 ) {
     commands
         .spawn()
@@ -93,6 +102,7 @@ fn setup(
                 &mut *materials,
                 &mut *clear_color,
                 &mut *boundaries,
+                &mut *assets,
             );
             match *level {
                 Levels::NoLevel => {}

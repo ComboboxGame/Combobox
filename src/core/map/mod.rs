@@ -18,6 +18,7 @@ pub struct MapBuilder<'w, 's, 'a, 'b> {
     builder: &'b mut ChildBuilder<'w, 's, 'a>,
     meshes: &'b mut Assets<Mesh>,
     materials: &'b mut Assets<Material>,
+    assets: &'b mut AssetServer,
     clear_color: &'b mut ClearColor,
     boundaries: &'b mut MapBoundaries,
 
@@ -31,6 +32,7 @@ impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
         materials: &'b mut Assets<Material>,
         clear_color: &'b mut ClearColor,
         boundaries: &'b mut MapBoundaries,
+        assets: &'b mut AssetServer,
     ) -> MapBuilder<'w, 's, 'a, 'b> {
         let wall_material = materials.add(Color::rgb_u8(255, 212, 120).into());
 
@@ -41,6 +43,7 @@ impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
             wall_material,
             clear_color,
             boundaries,
+            assets,
         }
     }
 

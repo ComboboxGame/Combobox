@@ -2,14 +2,9 @@ use bevy::ecs::system::EntityCommands;
 use bevy::prelude::shape::Quad;
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
-use bevy_rapier2d::prelude::{
-    Collider, CollisionGroups, RigidBody,
-};
+use bevy_rapier2d::prelude::{Collider, CollisionGroups, RigidBody};
 
-use crate::core::{
-    Elevator, ElevatorType, MapBuilder, ELEVATOR_BIT,
-    ELEVATOR_FILTER,
-};
+use crate::core::{Elevator, ElevatorType, MapBuilder, ELEVATOR_BIT, ELEVATOR_FILTER};
 use crate::game::Material;
 
 #[derive(Bundle)]

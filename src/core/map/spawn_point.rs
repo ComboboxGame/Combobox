@@ -1,7 +1,6 @@
 use crate::core::MapBuilder;
 use bevy::prelude::*;
 
-
 #[derive(Debug, Clone, Component)]
 pub struct SpawnPoint {
     pub id: u32,

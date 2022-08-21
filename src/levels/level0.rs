@@ -28,4 +28,9 @@ pub fn setup_level0(builder: &mut MapBuilder) {
         Combobox::new(1.0, ComboboxType::Buf),
         Vec2::new(-380.0, 160.0),
     );
+
+    builder.spawn_box(
+        Combobox::new(1.0, ComboboxType::Buf),
+        Vec2::new(-480.0, 160.0),
+    );
 }

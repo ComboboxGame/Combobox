@@ -13,7 +13,7 @@ pub use player::*;
 
 pub struct CorePlugin;
 
-pub const G: f32 = 9.8 * 50.;
+pub const G: f32 = 9.8 * 100.;
 
 pub const WALL_BIT: u32 = 1 << 0;
 pub const COMBOBOX_BIT: u32 = 1 << 1;
@@ -21,8 +21,8 @@ pub const PLAYER_BIT: u32 = 1 << 2;
 pub const ELEVATOR_BIT: u32 = 1 << 3;
 
 pub const WALL_FILTER: u32 = COMBOBOX_BIT | PLAYER_BIT;
-pub const COMBOBOX_FILTER: u32 = WALL_BIT | PLAYER_BIT | ELEVATOR_BIT;
-pub const PLAYER_FILTER: u32 = WALL_BIT | COMBOBOX_BIT | ELEVATOR_BIT;
+pub const COMBOBOX_FILTER: u32 = WALL_BIT | PLAYER_BIT | ELEVATOR_BIT | COMBOBOX_BIT;
+pub const PLAYER_FILTER: u32 = WALL_BIT | COMBOBOX_BIT | ELEVATOR_BIT | PLAYER_BIT;
 pub const ELEVATOR_FILTER: u32 = PLAYER_BIT | COMBOBOX_BIT;
 
 impl Plugin for CorePlugin {
@@ -32,7 +32,7 @@ impl Plugin for CorePlugin {
         //#[cfg(debug_assertions)]
         //app.add_plugin(RapierDebugRenderPlugin::default());
         app.insert_resource(RapierConfiguration {
-            gravity: Vec2::new(0., -9.8 * 50.),
+            gravity: Vec2::new(0., -G),
             ..Default::default()
         });
 

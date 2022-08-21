@@ -1,15 +1,17 @@
 use crate::core::{MapBoundaries, PLAYER_BIT, PLAYER_FILTER};
 
-use std::f32::consts::PI;
+use bevy::prelude::shape::Quad;
 use bevy::render::camera::RenderTarget;
+use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_rapier2d::dynamics::CoefficientCombineRule;
 use bevy_rapier2d::prelude::{
-    Collider, CollisionGroups, ExternalImpulse, Friction, LockedAxes, QueryFilter, RapierContext,
-    ReadMassProperties, RigidBody, Velocity, RapierConfiguration
+    Collider, CollisionGroups, ExternalImpulse, Friction, LockedAxes, QueryFilter,
+    RapierConfiguration, RapierContext, ReadMassProperties, RigidBody, Velocity,
 };
+use std::f32::consts::PI;
 
-use crate::game::GameState;
+use crate::game::{GameState, Material};
 
 #[derive(Component)]
 pub struct PlayerSprite;
@@ -63,12 +65,19 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn spawn(commands: &mut Commands, asset_server: &AssetServer, id: u32) -> Entity {
+    pub fn spawn(
+        commands: &mut Commands,
+        asset_server: &AssetServer,
+        meshes: &mut Assets<Mesh>,
+        materials: &mut Assets<Material>,
+        id: u32,
+    ) -> Entity {
         let player_sprite = commands
-            .spawn_bundle(SpriteBundle {
-                texture: asset_server.load("img/cat.png"),
+            .spawn_bundle(MaterialMesh2dBundle {
+                material: materials.add(Material::from(asset_server.load("images/robot.png"))),
+                mesh: Mesh2dHandle(meshes.add(Quad::new(Vec2::new(100.0, 100.0)).into())),
                 transform: Transform {
-                    scale: Vec3::new(0.25, 0.25, 1.),
+                    scale: Vec3::new(1.0, 1.0, 1.),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -81,10 +90,10 @@ impl Player {
             .insert(Player {
                 max_speed: 200.,
                 max_acceleration: 850.0,
-                jump_impulse: 2000000.,
+                jump_impulse: 600.,
                 id,
             })
-            .insert(Collider::cuboid(50., 30.))
+            .insert(Collider::cuboid(50., 50.))
             .insert(RigidBody::Dynamic)
             .insert(Velocity::default())
             .insert(LockedAxes::ROTATION_LOCKED)
@@ -150,6 +159,7 @@ impl Player {
             &Player,
             &GlobalTransform,
             &Collider,
+            &ReadMassProperties,
         )>,
         rapier_context: Res<RapierContext>,
         keys: Res<Input<KeyCode>>,
@@ -168,8 +178,8 @@ impl Player {
                 .is_some()
         };
 
-        for (entity, mut ext_impulse, player, transform, collider) in players.iter_mut() {
-            if keys.just_pressed(KeyCode::Space) {
+        for (entity, mut ext_impulse, player, transform, collider, mass) in players.iter_mut() {
+            if keys.pressed(KeyCode::Space) {
                 let collider = collider.as_cuboid().unwrap();
 
                 let mut can_jump = false;
@@ -178,13 +188,13 @@ impl Player {
 
                     if config.gravity.y != 0. {
                         bottom = Vec2::new(
-                            collider.half_extents().x * (1. - 2. / (i as f32)),
+                            collider.half_extents().x * (0.98 - 1.96 / (i as f32)),
                             collider.half_extents().y * -config.gravity.y.signum(),
                         );
                     } else {
                         bottom = Vec2::new(
                             collider.half_extents().x * -config.gravity.x.signum(),
-                            collider.half_extents().y * (1. - 2. / (i as f32)),
+                            collider.half_extents().y * (0.98 - 1.96 / (i as f32)),
                         );
                     }
 
@@ -197,7 +207,8 @@ impl Player {
                 }
 
                 if can_jump {
-                    ext_impulse.impulse = -config.gravity.normalize() * player.jump_impulse;
+                    ext_impulse.impulse =
+                        -config.gravity.normalize() * player.jump_impulse * mass.0.mass;
                 }
             }
         }
