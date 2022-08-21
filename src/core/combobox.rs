@@ -1,6 +1,7 @@
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use bevy_rapier2d::rapier::prelude::QueryFilterFlags;
 
 use crate::core::ComboboxBundle;
 use crate::game::{GameState, Material};
@@ -23,27 +24,39 @@ pub enum ComboboxState {
     Despawned,
 }
 
-pub const SPAWN_TIME: f32 = 0.15;
-pub const DESPAWN_TIME: f32 = 0.15;
-
 #[derive(Component, Clone, Debug)]
 pub struct Combobox {
-    pub size: f32,
+    pub weight: f32,
     pub box_type: ComboboxType,
-    pub combined_from: Vec<Combobox>,
+    pub combined_from: Vec<(Combobox, Vec2)>,
+    pub local_gravity: Option<Vec2>,
 }
 
 impl Combobox {
-    pub fn new(size: f32, box_type: ComboboxType) -> Combobox {
+    pub const SPAWN_TIME: f32 = 1.0;
+    pub const DESPAWN_TIME: f32 = 1.0;
+    pub const DEFAULT_SIZE: f32 = 50.0;
+
+    pub fn new(weight: f32, box_type: ComboboxType) -> Combobox {
         Self {
-            size,
+            weight,
             box_type,
             combined_from: vec![],
+            local_gravity: None,
         }
     }
 
-    pub fn merge(&self, other: &Combobox) -> Option<Vec<Combobox>> {
-        match (&self.box_type, &other.box_type) {
+    pub fn world_size(&self) -> f32 {
+        self.weight.sqrt() * Self::DEFAULT_SIZE
+    }
+
+    pub fn merge(
+        first: &Combobox,
+        first_pos: Vec2,
+        second: &Combobox,
+        second_pos: Vec2,
+    ) -> Option<Vec<(Combobox, Vec2)>> {
+        match (&first.box_type, &second.box_type) {
             (
                 ComboboxType::Standard { group: group1 },
                 ComboboxType::Standard { group: group2 },
@@ -52,37 +65,53 @@ impl Combobox {
                     return None;
                 }
 
+                let center = (first_pos + second_pos) * 0.5;
+                let first_offset = first_pos - center;
+                let second_offset = second_pos - center;
+
                 let big_box = Combobox {
-                    size: f32::sqrt(self.size.powf(2.) + other.size.powf(2.)),
-                    box_type: self.box_type.clone(),
-                    combined_from: vec![self.clone(), other.clone()],
+                    weight: first.weight + second.weight,
+                    box_type: first.box_type.clone(),
+                    combined_from: vec![
+                        (first.clone(), first_offset),
+                        (second.clone(), second_offset),
+                    ],
+                    local_gravity: None,
                 };
 
-                return Some(vec![big_box]);
+                return Some(vec![(big_box, center)]);
             }
-            (ComboboxType::Standard { .. }, ComboboxType::Buf) => other.merge(self),
             (ComboboxType::Buf, ComboboxType::Standard { .. }) => {
-                let buffed_box = Combobox {
-                    size: other.size * 2.,
-                    box_type: other.box_type.clone(),
-                    combined_from: vec![self.clone(), other.clone()],
-                };
+                let center = (first_pos + second_pos) * 0.5;
+                let first_offset = first_pos - center;
+                let second_offset = second_pos - center;
 
-                return Some(vec![buffed_box]);
+                let buffed_box = Combobox {
+                    weight: second.weight * 2.,
+                    box_type: second.box_type.clone(),
+                    combined_from: vec![
+                        (first.clone(), first_offset),
+                        (second.clone(), second_offset),
+                    ],
+                    local_gravity: None,
+                };
+                return Some(vec![(buffed_box, second_pos)]);
             }
             (ComboboxType::Undo, _) => {
-                if other.combined_from.len() == 0 {
+                if second.combined_from.len() == 0 {
                     return None;
                 }
 
-                return Some(other.combined_from.clone());
+                return Some(
+                    second
+                        .combined_from
+                        .iter()
+                        .map(|(c, v)| (c.clone(), *v * 1.3 + second_pos))
+                        .collect(),
+                );
             }
-            (_, ComboboxType::Undo) => {
-                if self.combined_from.len() == 0 {
-                    return None;
-                }
-
-                return Some(self.combined_from.clone());
+            (_, ComboboxType::Undo) | (ComboboxType::Standard { .. }, ComboboxType::Buf) => {
+                Self::merge(second, second_pos, first, first_pos)
             }
             (_, _) => None,
         }
@@ -93,9 +122,13 @@ pub struct ComboboxPlugin;
 
 impl Plugin for ComboboxPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(GameState::Game).with_system(merge));
-        app.add_system_set(SystemSet::on_update(GameState::Game).with_system(animation));
-        app.add_system_set(SystemSet::on_update(GameState::Game).with_system(despawn));
+        app.add_system_set(
+            SystemSet::on_update(GameState::Game)
+                .with_system(merge)
+                .with_system(animation)
+                .with_system(pushback)
+                .with_system(despawn),
+        );
     }
 }
 
@@ -109,24 +142,61 @@ fn animation(
 
         if let ComboboxState::SpawningAnimation(animation_time) = &mut *combobox_state {
             *animation_time += time.delta_seconds();
-            transform.scale = Vec3::ONE * (*animation_time / SPAWN_TIME).clamp(0.01, 1.0);
+            transform.scale = Vec3::ONE * (*animation_time / Combobox::SPAWN_TIME).clamp(0.01, 1.0);
 
-            if *animation_time >= SPAWN_TIME {
+            if *animation_time >= Combobox::SPAWN_TIME {
                 new_state = Some(ComboboxState::Normal);
                 commands.entity(entity).insert(RigidBody::Dynamic);
             }
         }
         if let ComboboxState::DespawningAnimation(animation_time) = &mut *combobox_state {
             *animation_time += time.delta_seconds();
-            transform.scale = Vec3::ONE * (1.0 - *animation_time / SPAWN_TIME).clamp(0.01, 1.0);
+            transform.scale =
+                Vec3::ONE * (1.0 - *animation_time / Combobox::DESPAWN_TIME).clamp(0.01, 1.0);
 
-            if *animation_time >= DESPAWN_TIME {
+            if *animation_time >= Combobox::DESPAWN_TIME {
                 new_state = Some(ComboboxState::Despawned)
             }
         }
 
         if let Some(new_state) = new_state {
             *combobox_state = new_state;
+        }
+    }
+}
+
+fn pushback(
+    mut comboboxes: Query<(Entity, &Combobox, &ComboboxState, &mut Transform)>,
+    context: ResMut<RapierContext>,
+) {
+    for (entity, combobox, combobox_state, mut transform) in comboboxes.iter_mut() {
+        if let ComboboxState::SpawningAnimation(_) = *combobox_state {
+            let origin = transform.translation.xy();
+            let directions = [
+                Vec2::new(-1.0, 0.0),
+                Vec2::new(1.0, 0.0),
+                Vec2::new(0.0, -1.0),
+                Vec2::new(0.0, 1.0),
+            ];
+            let half_size = combobox.world_size() * 0.5 * transform.scale.x;
+
+            let filter: QueryFilter = QueryFilterFlags::EXCLUDE_KINEMATIC.into();
+
+            for dir in directions {
+                context.intersections_with_ray(
+                    origin,
+                    dir,
+                    half_size * 1.02,
+                    true,
+                    filter.exclude_collider(entity),
+                    |_, e| {
+                        let depth = (half_size * 1.02 - e.toi).clamp(0.0, 50.0);
+                        let offset = dir * depth * 0.1;
+                        transform.translation -= Vec3::new(offset.x, offset.y, 0.0);
+                        true
+                    },
+                );
+            }
         }
     }
 }
@@ -155,18 +225,17 @@ fn merge(
                 continue;
             }
 
-            if (transform_a.translation - transform_b.translation)
-                .abs()
-                .max_element()
-                < (combobox_a.size + combobox_b.size) * 0.55
+            let pos_a = transform_a.translation.xy();
+            let pos_b = transform_b.translation.xy();
+
+            if (pos_a - pos_b).abs().max_element()
+                < (combobox_a.world_size() + combobox_b.world_size()) * 0.52
             {
-                if let Some(merge) = combobox_a.merge(combobox_b) {
-                    for combobox_new in merge {
-                        let position_new =
-                            (transform_a.translation + transform_b.translation).xy() * 0.5;
+                if let Some(merge) = Combobox::merge(combobox_a, pos_a, combobox_b, pos_b) {
+                    for (combobox_new, pos_new) in merge {
                         commands.spawn_bundle(ComboboxBundle::new(
                             combobox_new,
-                            position_new,
+                            pos_new,
                             &mut meshes,
                             &mut materials,
                         ));

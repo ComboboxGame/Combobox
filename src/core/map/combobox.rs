@@ -2,7 +2,9 @@ use bevy::ecs::system::EntityCommands;
 use bevy::prelude::shape::Quad;
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
-use bevy_rapier2d::prelude::{Collider, LockedAxes, RigidBody};
+use bevy_rapier2d::prelude::{
+    Collider, ExternalImpulse, LockedAxes, ReadMassProperties, RigidBody,
+};
 
 use crate::core::{Combobox, ComboboxState, ComboboxType, MapBuilder};
 use crate::game::Material;
@@ -16,6 +18,8 @@ pub struct ComboboxBundle {
     pub mesh_bundle: MaterialMesh2dBundle<Material>,
     pub locked_axes: LockedAxes,
     pub combobox_state: ComboboxState,
+    pub external_impulse: ExternalImpulse,
+    pub read_mass: ReadMassProperties,
 }
 
 impl ComboboxBundle {
@@ -36,15 +40,18 @@ impl ComboboxBundle {
         ComboboxBundle {
             combobox: combobox.clone(),
             rigid_body: RigidBody::KinematicPositionBased,
-            collider: Collider::cuboid(combobox.size * 0.5, combobox.size * 0.5),
+            collider: Collider::cuboid(combobox.world_size() * 0.5, combobox.world_size() * 0.5),
             mesh_bundle: MaterialMesh2dBundle {
-                mesh: Mesh2dHandle(meshes.add(Quad::new(Vec2::ONE * combobox.size).into())),
+                mesh: Mesh2dHandle(meshes.add(Quad::new(Vec2::ONE * combobox.world_size()).into())),
                 material: materials.add(color.into()),
-                transform: Transform::from_xyz(position.x, position.y, 0.0),
+                transform: Transform::from_xyz(position.x, position.y, 0.0)
+                    .with_scale(Vec3::ONE * 0.01),
                 ..MaterialMesh2dBundle::default()
             },
             locked_axes: LockedAxes::ROTATION_LOCKED,
             combobox_state: ComboboxState::SpawningAnimation(0.0),
+            external_impulse: ExternalImpulse::default(),
+            read_mass: ReadMassProperties::default(),
         }
     }
 }
