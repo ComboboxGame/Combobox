@@ -13,6 +13,8 @@ pub use player::*;
 
 pub struct CorePlugin;
 
+pub const G: f32 = 9.8 * 50.;
+
 pub const WALL_BIT: u32 = 1 << 0;
 pub const COMBOBOX_BIT: u32 = 1 << 1;
 pub const PLAYER_BIT: u32 = 1 << 2;
