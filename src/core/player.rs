@@ -1,6 +1,8 @@
 use bevy::{math::Vec3Swizzles, prelude::*};
+use bevy_rapier2d::dynamics::CoefficientCombineRule;
 use bevy_rapier2d::prelude::{
-    Collider, ExternalImpulse, LockedAxes, QueryFilter, RapierContext, RigidBody, Velocity,
+    Collider, ExternalImpulse, Friction, LockedAxes, QueryFilter, RapierContext,
+    ReadMassProperties, RigidBody, Velocity,
 };
 
 use crate::game::GameState;
@@ -41,8 +43,8 @@ impl PlayerSprite {
 
 #[derive(Component)]
 pub struct Player {
-    moving_speed: f32,
-    moving_decay: f32,
+    max_speed: f32,
+    max_acceleration: f32,
     jump_impulse: f32,
 }
 
@@ -66,8 +68,8 @@ impl Player {
                 global: GlobalTransform::from_xyz(pos.x, pos.y, 0.),
             })
             .insert(Player {
-                moving_speed: 150.,
-                moving_decay: 0.5,
+                max_speed: 200.,
+                max_acceleration: 850.0,
                 jump_impulse: 2000000.,
             })
             .insert(Collider::cuboid(50., 30.))
@@ -75,20 +77,42 @@ impl Player {
             .insert(Velocity::default())
             .insert(LockedAxes::ROTATION_LOCKED)
             .insert(ExternalImpulse::default())
+            .insert(ReadMassProperties::default())
+            .insert(Friction {
+                coefficient: 0.0,
+                combine_rule: CoefficientCombineRule::Min,
+            })
             .insert_bundle(VisibilityBundle::default())
             .add_child(player_sprite);
     }
 
-    pub fn move_player(mut players: Query<(&mut Velocity, &Player)>, keys: Res<Input<KeyCode>>) {
-        for (mut velocity, player) in players.iter_mut() {
-            let vel = Vec3::X.xy() * player.moving_speed;
+    pub fn move_player(
+        mut players: Query<(
+            &mut ExternalImpulse,
+            &Velocity,
+            &ReadMassProperties,
+            &Player,
+        )>,
+        keys: Res<Input<KeyCode>>,
+        time: Res<Time>,
+    ) {
+        for (mut impulse, velocity, mass, player) in players.iter_mut() {
+            let mut target_velocity = 0.0;
+
             if keys.pressed(KeyCode::A) || keys.pressed(KeyCode::Left) {
-                velocity.linvel -= vel;
-            } else if keys.pressed(KeyCode::D) || keys.pressed(KeyCode::Right) {
-                velocity.linvel += vel;
+                target_velocity -= player.max_speed;
+            }
+            if keys.pressed(KeyCode::D) || keys.pressed(KeyCode::Right) {
+                target_velocity += player.max_speed;
             }
 
-            velocity.linvel.x *= player.moving_decay;
+            let delta_velocity = target_velocity - velocity.linvel.x;
+            let k = ((delta_velocity.abs() - player.max_speed * 1.0).max(0.0) / player.max_speed)
+                .clamp(0.0, 2.0);
+            let dv = delta_velocity
+                .abs()
+                .min(player.max_acceleration * time.delta_seconds() * (1.0 + k));
+            impulse.impulse += Vec2::X * delta_velocity.signum() * dv * mass.0.mass;
         }
     }
 

@@ -3,7 +3,7 @@ use bevy::prelude::shape::Quad;
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 use bevy_rapier2d::prelude::{
-    Collider, ExternalImpulse, LockedAxes, ReadMassProperties, RigidBody,
+    Collider, CollisionGroups, ExternalImpulse, LockedAxes, ReadMassProperties, RigidBody, Velocity,
 };
 
 use crate::core::{Combobox, ComboboxState, ComboboxType, MapBuilder};
@@ -20,6 +20,8 @@ pub struct ComboboxBundle {
     pub combobox_state: ComboboxState,
     pub external_impulse: ExternalImpulse,
     pub read_mass: ReadMassProperties,
+    pub collision_groups: CollisionGroups,
+    pub velocity: Velocity,
 }
 
 impl ComboboxBundle {
@@ -52,6 +54,8 @@ impl ComboboxBundle {
             combobox_state: ComboboxState::SpawningAnimation(0.0),
             external_impulse: ExternalImpulse::default(),
             read_mass: ReadMassProperties::default(),
+            collision_groups: CollisionGroups::new(0, 0),
+            velocity: Velocity::default(),
         }
     }
 }

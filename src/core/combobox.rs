@@ -24,6 +24,56 @@ pub enum ComboboxState {
     Despawned,
 }
 
+impl ComboboxState {
+    pub const SPAWN_TIME: f32 = 0.25;
+    pub const DESPAWN_TIME: f32 = 0.25;
+
+    fn evaluate_bezier(a: Vec2, b: Vec2, t: f32) -> f32 {
+        a.x * (1.0 - t).powf(3.0)
+            + 3.0 * a.y * (1.0 - t).powf(2.0) * t
+            + 3.0 * b.x * (1.0 - t) * t * t
+            + b.y * t * t * t
+    }
+
+    pub fn get_scale(&self) -> f32 {
+        match *self {
+            ComboboxState::Normal => 1.0,
+            ComboboxState::SpawningAnimation(time) => {
+                let a = Vec2::new(0.0, 1.0);
+                let b = Vec2::new(1.35, 1.0);
+                let t = (time / Self::SPAWN_TIME).clamp(0.01, 1.0);
+                Self::evaluate_bezier(a, b, t)
+            }
+            ComboboxState::DespawningAnimation(time) => {
+                let a = Vec2::new(0.0, 1.0);
+                let b = Vec2::new(1.35, 1.0);
+                let t = 1.0 - (time / Self::SPAWN_TIME).clamp(0.01, 1.0);
+                Self::evaluate_bezier(a, b, t)
+            }
+            ComboboxState::Despawned => 0.01,
+        }
+    }
+
+    pub fn get_scale_ahead(&self, ahead: f32) -> f32 {
+        match *self {
+            ComboboxState::Normal => 1.0,
+            ComboboxState::SpawningAnimation(time) => {
+                let a = Vec2::new(0.0, 1.0);
+                let b = Vec2::new(1.00, 1.0);
+                let t = ((time + ahead) / Self::SPAWN_TIME).clamp(0.01, 1.0);
+                Self::evaluate_bezier(a, b, t)
+            }
+            ComboboxState::DespawningAnimation(time) => {
+                let a = Vec2::new(0.0, 1.0);
+                let b = Vec2::new(1.00, 1.0);
+                let t = 1.0 - ((time + ahead) / Self::SPAWN_TIME).clamp(0.01, 1.0);
+                Self::evaluate_bezier(a, b, t)
+            }
+            ComboboxState::Despawned => 0.01,
+        }
+    }
+}
+
 #[derive(Component, Clone, Debug)]
 pub struct Combobox {
     pub weight: f32,
@@ -33,8 +83,6 @@ pub struct Combobox {
 }
 
 impl Combobox {
-    pub const SPAWN_TIME: f32 = 1.0;
-    pub const DESPAWN_TIME: f32 = 1.0;
     pub const DEFAULT_SIZE: f32 = 50.0;
 
     pub fn new(weight: f32, box_type: ComboboxType) -> Combobox {
@@ -65,7 +113,8 @@ impl Combobox {
                     return None;
                 }
 
-                let center = (first_pos + second_pos) * 0.5;
+                let center = (first_pos * first.world_size() + second_pos * second.world_size())
+                    / (first.world_size() + second.world_size());
                 let first_offset = first_pos - center;
                 let second_offset = second_pos - center;
 
@@ -106,7 +155,7 @@ impl Combobox {
                     second
                         .combined_from
                         .iter()
-                        .map(|(c, v)| (c.clone(), *v * 1.3 + second_pos))
+                        .map(|(c, v)| (c.clone(), *v * 1.9 + second_pos))
                         .collect(),
                 );
             }
@@ -142,19 +191,17 @@ fn animation(
 
         if let ComboboxState::SpawningAnimation(animation_time) = &mut *combobox_state {
             *animation_time += time.delta_seconds();
-            transform.scale = Vec3::ONE * (*animation_time / Combobox::SPAWN_TIME).clamp(0.01, 1.0);
 
-            if *animation_time >= Combobox::SPAWN_TIME {
+            if *animation_time >= ComboboxState::SPAWN_TIME {
                 new_state = Some(ComboboxState::Normal);
                 commands.entity(entity).insert(RigidBody::Dynamic);
+                commands.entity(entity).insert(CollisionGroups::default());
             }
         }
         if let ComboboxState::DespawningAnimation(animation_time) = &mut *combobox_state {
             *animation_time += time.delta_seconds();
-            transform.scale =
-                Vec3::ONE * (1.0 - *animation_time / Combobox::DESPAWN_TIME).clamp(0.01, 1.0);
 
-            if *animation_time >= Combobox::DESPAWN_TIME {
+            if *animation_time >= ComboboxState::DESPAWN_TIME {
                 new_state = Some(ComboboxState::Despawned)
             }
         }
@@ -162,40 +209,64 @@ fn animation(
         if let Some(new_state) = new_state {
             *combobox_state = new_state;
         }
+
+        transform.scale = Vec3::ONE * combobox_state.get_scale();
     }
 }
 
 fn pushback(
     mut comboboxes: Query<(Entity, &Combobox, &ComboboxState, &mut Transform)>,
+    mut bodies: Query<(
+        &mut ExternalImpulse,
+        &Velocity,
+        &ReadMassProperties,
+        &RigidBody,
+    )>,
     context: ResMut<RapierContext>,
+    time: Res<Time>,
 ) {
     for (entity, combobox, combobox_state, mut transform) in comboboxes.iter_mut() {
         if let ComboboxState::SpawningAnimation(_) = *combobox_state {
-            let origin = transform.translation.xy();
             let directions = [
                 Vec2::new(-1.0, 0.0),
                 Vec2::new(1.0, 0.0),
                 Vec2::new(0.0, -1.0),
                 Vec2::new(0.0, 1.0),
             ];
-            let half_size = combobox.world_size() * 0.5 * transform.scale.x;
+            let offsets = [-0.76, -0.45, 0.0, 0.45, 0.76];
+            let half_size = combobox.world_size() * 0.5 * combobox_state.get_scale_ahead(0.1);
+            let half_size2 = combobox.world_size() * 0.5 * combobox_state.get_scale_ahead(1.0);
 
             let filter: QueryFilter = QueryFilterFlags::EXCLUDE_KINEMATIC.into();
 
-            for dir in directions {
-                context.intersections_with_ray(
-                    origin,
-                    dir,
-                    half_size * 1.02,
-                    true,
-                    filter.exclude_collider(entity),
-                    |_, e| {
-                        let depth = (half_size * 1.02 - e.toi).clamp(0.0, 50.0);
-                        let offset = dir * depth * 0.1;
-                        transform.translation -= Vec3::new(offset.x, offset.y, 0.0);
-                        true
-                    },
-                );
+            for offset in offsets {
+                for dir in directions {
+                    let origin = transform.translation.xy() + dir.perp() * offset * half_size;
+                    context.intersections_with_ray(
+                        origin,
+                        dir,
+                        half_size2 * 1.2,
+                        true,
+                        filter.exclude_collider(entity),
+                        |v, e| {
+                            if let Ok((mut impulse, velocity, mass, RigidBody::Dynamic)) =
+                                bodies.get_mut(v)
+                            {
+                                let depth = (half_size2 * 1.01 - e.toi).clamp(0.0, 50.0);
+                                let velocity = dir.dot(velocity.linvel);
+                                impulse.impulse +=
+                                    dir * time.delta_seconds() * depth * mass.0.mass * 300.0;
+                                impulse.impulse -=
+                                    dir * time.delta_seconds() * velocity * mass.0.mass * 5.0;
+                            } else {
+                                let depth = (half_size * 1.01 - e.toi).clamp(0.0, 50.0);
+                                let offset = dir * depth * 0.3;
+                                transform.translation -= Vec3::new(offset.x, offset.y, 0.0);
+                            }
+                            true
+                        },
+                    );
+                }
             }
         }
     }
@@ -243,11 +314,13 @@ fn merge(
                     commands
                         .entity(a)
                         .insert(RigidBody::KinematicPositionBased)
-                        .insert(ComboboxState::DespawningAnimation(0.0));
+                        .insert(ComboboxState::DespawningAnimation(0.0))
+                        .insert(CollisionGroups::new(0, 0));
                     commands
                         .entity(b)
                         .insert(RigidBody::KinematicPositionBased)
-                        .insert(ComboboxState::DespawningAnimation(0.0));
+                        .insert(ComboboxState::DespawningAnimation(0.0))
+                        .insert(CollisionGroups::new(0, 0));
                     break 'outer;
                 }
             }
