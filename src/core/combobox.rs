@@ -1,10 +1,14 @@
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
+use bevy_rapier2d::na::vector;
 use bevy_rapier2d::prelude::*;
 use bevy_rapier2d::rapier::prelude::QueryFilterFlags;
+use nalgebra;
 
 use crate::core::{ComboboxBundle, COMBOBOX_BIT, COMBOBOX_FILTER};
 use crate::game::{GameState, Material};
+
+use super::G;
 
 #[derive(Clone, Debug)]
 pub enum ComboboxType {
@@ -104,6 +108,11 @@ impl Combobox {
         second: &Combobox,
         second_pos: Vec2,
     ) -> Option<Vec<(Combobox, Vec2)>> {
+        let center = (first_pos * first.world_size() + second_pos * second.world_size())
+            / (first.world_size() + second.world_size());
+        let first_offset = first_pos - center;
+        let second_offset = second_pos - center;
+
         match (&first.box_type, &second.box_type) {
             (
                 ComboboxType::Standard { group: group1 },
@@ -113,10 +122,14 @@ impl Combobox {
                     return None;
                 }
 
-                let center = (first_pos * first.world_size() + second_pos * second.world_size())
-                    / (first.world_size() + second.world_size());
-                let first_offset = first_pos - center;
-                let second_offset = second_pos - center;
+                let mut gravity = None;
+                if let Some(first_gravity) = first.local_gravity {
+                    if let Some(second_gravity) = second.local_gravity {
+                        if first_gravity == second_gravity {
+                            gravity = Some(first_gravity.clone());
+                        }
+                    }
+                }
 
                 let big_box = Combobox {
                     weight: first.weight + second.weight,
@@ -125,16 +138,12 @@ impl Combobox {
                         (first.clone(), first_offset),
                         (second.clone(), second_offset),
                     ],
-                    local_gravity: None,
+                    local_gravity: gravity,
                 };
 
                 return Some(vec![(big_box, center)]);
             }
             (ComboboxType::Buf, ComboboxType::Standard { .. }) => {
-                let center = (first_pos + second_pos) * 0.5;
-                let first_offset = first_pos - center;
-                let second_offset = second_pos - center;
-
                 let buffed_box = Combobox {
                     weight: second.weight * 2.,
                     box_type: second.box_type.clone(),
@@ -142,9 +151,35 @@ impl Combobox {
                         (first.clone(), first_offset),
                         (second.clone(), second_offset),
                     ],
-                    local_gravity: None,
+                    local_gravity: second.local_gravity,
                 };
                 return Some(vec![(buffed_box, second_pos)]);
+            }
+            (ComboboxType::Direction { direction }, ComboboxType::Standard { .. }) => {
+                let direction_box = Combobox {
+                    weight: second.weight,
+                    box_type: second.box_type.clone(),
+                    combined_from: vec![
+                        (first.clone(), first_offset),
+                        (second.clone(), second_offset),
+                    ],
+                    local_gravity: Some(direction.clone()),
+                };
+
+                return Some(vec![(direction_box, second_pos)]);
+            }
+            (ComboboxType::Gravity, ComboboxType::Direction { direction }) => {
+                let gravity_box = Combobox {
+                    weight: first.weight,
+                    box_type: first.box_type.clone(),
+                    combined_from: vec![
+                        (first.clone(), first_offset),
+                        (second.clone(), second_offset),
+                    ],
+                    local_gravity: Some(direction.clone()),
+                };
+
+                return Some(vec![(gravity_box, first_pos)]);
             }
             (ComboboxType::Undo, _) => {
                 if second.combined_from.len() == 0 {
@@ -159,7 +194,10 @@ impl Combobox {
                         .collect(),
                 );
             }
-            (_, ComboboxType::Undo) | (ComboboxType::Standard { .. }, ComboboxType::Buf) => {
+            (_, ComboboxType::Undo)
+            | (ComboboxType::Standard { .. }, ComboboxType::Buf)
+            | (ComboboxType::Standard { .. }, ComboboxType::Direction { .. })
+            | (ComboboxType::Direction { .. }, ComboboxType::Gravity) => {
                 Self::merge(second, second_pos, first, first_pos)
             }
             (_, _) => None,
@@ -176,7 +214,9 @@ impl Plugin for ComboboxPlugin {
                 .with_system(merge)
                 .with_system(animation)
                 .with_system(pushback)
-                .with_system(despawn),
+                .with_system(despawn)
+                .with_system(change_direction)
+                .with_system(change_gravity),
         );
     }
 }
@@ -269,6 +309,47 @@ fn pushback(
                         },
                     );
                 }
+            }
+        }
+    }
+}
+
+fn change_direction(
+    comboboxes: Query<(&Combobox, &RapierRigidBodyHandle)>,
+    mut context: ResMut<RapierContext>,
+) {
+    for (combobox, handle) in comboboxes.iter() {
+        if let Some(mut gravity) = combobox.local_gravity {
+            if let Some(rb) = context.bodies.get_mut(handle.0) {
+                gravity = gravity * G * rb.mass();
+                rb.set_gravity_scale(0., true);
+                rb.reset_forces(true);
+                rb.add_force(vector![gravity.x, gravity.y], true);
+            }
+        }
+    }
+}
+
+fn change_gravity(
+    comboboxes: Query<&Combobox>,
+    rigidbodies: Query<&RapierRigidBodyHandle>,
+    mut config: ResMut<RapierConfiguration>,
+    mut context: ResMut<RapierContext>,
+) {
+    let mut gravity_change_flag = false;
+    for combobox in comboboxes.iter() {
+        if matches!(combobox.box_type, ComboboxType::Gravity) {
+            if let Some(gravity) = combobox.local_gravity {
+                config.gravity = gravity * G;
+                gravity_change_flag = true;
+            }
+        }
+    }
+
+    if gravity_change_flag {
+        for handle in rigidbodies.iter() {
+            if let Some(rb) = context.bodies.get_mut(handle.0) {
+                rb.wake_up(true);
             }
         }
     }

@@ -1,43 +1,53 @@
 use crate::core::{MapBoundaries, PLAYER_BIT, PLAYER_FILTER};
 
+use std::f32::consts::PI;
 use bevy::render::camera::RenderTarget;
 use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_rapier2d::dynamics::CoefficientCombineRule;
 use bevy_rapier2d::prelude::{
     Collider, CollisionGroups, ExternalImpulse, Friction, LockedAxes, QueryFilter, RapierContext,
-    ReadMassProperties, RigidBody, Velocity,
+    ReadMassProperties, RigidBody, Velocity, RapierConfiguration
 };
 
 use crate::game::GameState;
 
 #[derive(Component)]
-pub struct PlayerSprite {
-    is_turned_left: bool,
-}
-
-impl Default for PlayerSprite {
-    fn default() -> Self {
-        Self {
-            is_turned_left: true,
-        }
-    }
-}
+pub struct PlayerSprite;
 
 impl PlayerSprite {
     fn turn_player(
+        mut query: Query<&mut Transform, With<PlayerSprite>>,
         keys: Res<Input<KeyCode>>,
-        mut query: Query<(&mut Transform, &mut PlayerSprite)>,
+        config: ResMut<RapierConfiguration>,
     ) {
-        for (mut transform, mut sprite) in query.iter_mut() {
-            if keys.pressed(KeyCode::A) || keys.pressed(KeyCode::Left) {
-                if !sprite.is_turned_left {
-                    transform.scale *= Vec3::new(-1., 1., 1.);
-                    sprite.is_turned_left = true;
+        for mut transform in query.iter_mut() {
+            transform.rotation = Quat::from_axis_angle(Vec3::Z, PI * 2.);
+
+            if config.gravity.y != 0. {
+                if keys.pressed(KeyCode::A) || keys.pressed(KeyCode::Left) {
+                    transform.scale.x = transform.scale.abs().x;
+                } else if keys.pressed(KeyCode::D) || keys.pressed(KeyCode::Right) {
+                    transform.scale.x = -transform.scale.abs().x;
                 }
-            } else if keys.pressed(KeyCode::D) || keys.pressed(KeyCode::Right) {
-                if sprite.is_turned_left {
-                    transform.scale *= Vec3::new(-1., 1., 1.);
-                    sprite.is_turned_left = false;
+
+                if config.gravity.y > 0. {
+                    transform.scale.y = -transform.scale.abs().y;
+                } else {
+                    transform.scale.y = transform.scale.abs().y;
+                }
+            } else if config.gravity.x != 0. {
+                transform.rotation = Quat::from_axis_angle(Vec3::Z, PI / 2.);
+
+                if keys.pressed(KeyCode::W) || keys.pressed(KeyCode::Up) {
+                    transform.scale.x = -transform.scale.abs().x;
+                } else if keys.pressed(KeyCode::S) || keys.pressed(KeyCode::Down) {
+                    transform.scale.x = transform.scale.abs().x;
+                }
+
+                if config.gravity.x < 0. {
+                    transform.scale.y = -transform.scale.abs().y;
+                } else {
+                    transform.scale.y = transform.scale.abs().y;
                 }
             }
         }
@@ -63,7 +73,7 @@ impl Player {
                 },
                 ..Default::default()
             })
-            .insert(PlayerSprite::default())
+            .insert(PlayerSprite)
             .id();
 
         commands
@@ -99,24 +109,37 @@ impl Player {
         )>,
         keys: Res<Input<KeyCode>>,
         time: Res<Time>,
+        config: ResMut<RapierConfiguration>,
     ) {
         for (mut impulse, velocity, mass, player) in players.iter_mut() {
             let mut target_velocity = 0.0;
 
-            if keys.pressed(KeyCode::A) || keys.pressed(KeyCode::Left) {
+            if ((keys.pressed(KeyCode::A) || keys.pressed(KeyCode::Left)) && config.gravity.y != 0.)
+                || ((keys.pressed(KeyCode::S) || keys.pressed(KeyCode::Down))
+                    && config.gravity.x != 0.)
+            {
                 target_velocity -= player.max_speed;
             }
-            if keys.pressed(KeyCode::D) || keys.pressed(KeyCode::Right) {
+            if ((keys.pressed(KeyCode::D) || keys.pressed(KeyCode::Right))
+                && config.gravity.y != 0.)
+                || ((keys.pressed(KeyCode::W) || keys.pressed(KeyCode::Up))
+                    && config.gravity.x != 0.)
+            {
                 target_velocity += player.max_speed;
             }
 
-            let delta_velocity = target_velocity - velocity.linvel.x;
+            let right = (Quat::from_rotation_arc_2d(Vec2::NEG_Y, Vec2::X)
+                * config.gravity.abs().normalize().extend(0.0))
+            .truncate()
+                * Vec2::new(-1.0, 1.0);
+
+            let delta_velocity = target_velocity - velocity.linvel.dot(right);
             let k = ((delta_velocity.abs() - player.max_speed * 1.0).max(0.0) / player.max_speed)
                 .clamp(0.0, 2.0);
             let dv = delta_velocity
                 .abs()
                 .min(player.max_acceleration * time.delta_seconds() * (1.0 + k));
-            impulse.impulse += Vec2::X * delta_velocity.signum() * dv * mass.0.mass;
+            impulse.impulse += right * delta_velocity.signum() * dv * mass.0.mass;
         }
     }
 
@@ -130,14 +153,15 @@ impl Player {
         )>,
         rapier_context: Res<RapierContext>,
         keys: Res<Input<KeyCode>>,
+        config: ResMut<RapierConfiguration>,
     ) {
         let hits_floor = |entity: Entity, pos: Vec2| -> bool {
-            let dir = Vec2::new(0., -1.);
+            let dir = config.gravity.normalize();
             rapier_context
                 .cast_ray(
                     pos,
                     dir,
-                    4.,
+                    5.,
                     true,
                     QueryFilter::new().exclude_collider(entity),
                 )
@@ -150,11 +174,21 @@ impl Player {
 
                 let mut can_jump = false;
                 for i in 0..4 {
-                    let start_point = transform.translation().xy()
-                        - Vec2::new(
+                    let bottom;
+
+                    if config.gravity.y != 0. {
+                        bottom = Vec2::new(
                             collider.half_extents().x * (1. - 2. / (i as f32)),
-                            collider.half_extents().y,
+                            collider.half_extents().y * -config.gravity.y.signum(),
                         );
+                    } else {
+                        bottom = Vec2::new(
+                            collider.half_extents().x * -config.gravity.x.signum(),
+                            collider.half_extents().y * (1. - 2. / (i as f32)),
+                        );
+                    }
+
+                    let start_point = transform.translation().xy() - bottom;
 
                     if hits_floor(entity, start_point) {
                         can_jump = true;
@@ -163,7 +197,7 @@ impl Player {
                 }
 
                 if can_jump {
-                    ext_impulse.impulse = Vec2::new(0., player.jump_impulse);
+                    ext_impulse.impulse = -config.gravity.normalize() * player.jump_impulse;
                 }
             }
         }
