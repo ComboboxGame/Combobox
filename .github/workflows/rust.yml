@@ -22,13 +22,16 @@ jobs:
       run: cargo build --target wasm32-unknown-unknown
     - name: Building wasm
       run: wasm-bindgen --out-dir ./out/ --target web ./target/wasm32-unknown-unknown/debug/combobox-game.wasm
-    - name: Create build folder
-      run: mkdir build; cp -r .\assets .\build\assets; cp .\index.html .\build; cp -r .\out .\build\out
     - name: Push wasm build artifacts to git hub pages branch
-      uses: s0/git-publish-subdir-action@develop
-      env:
-        REPO: self
-        BRANCH: gh-pages
-        FOLDER: build
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        MESSAGE: "Master build update"
+      run: |
+        git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
+        git config --global user.email "username@users.noreply.github.com"
+        git clone https://github.com/${{ github.repository }} build
+        cd build
+        git checkout gh-pages
+        del -r .\assets; cp -r ..\assets .\assets 
+        del -r .\index.html; cp ..\index.html .
+        del -r .\out; cp -r ..\out .\out
+        git add .
+        git commit -m "Git hub pages update"
+        git push
