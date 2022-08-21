@@ -14,14 +14,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build
-    - name: Run tests
-      run: cargo test
     - name: Installing wasm
       run: rustup target install wasm32-unknown-unknown
     - name: Installing wasm cli
       run: cargo install -f wasm-bindgen-cli
+    - name: Build
+      run: cargo build --target wasm32-unknown-unknown
     - name: Building wasm
       run: wasm-bindgen --out-dir ./out/ --target web ./target/wasm32-unknown-unknown/debug/combobox-game.wasm
     - name: Push wasm artifacts to git hub pages branch
