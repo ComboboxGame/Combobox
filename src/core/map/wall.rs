@@ -1,4 +1,4 @@
-use crate::core::MapBuilder;
+use crate::core::{MapBuilder, WALL_BIT, WALL_FILTER};
 use crate::game::Material;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::shape::Quad;
@@ -17,6 +17,7 @@ pub struct WallBundle {
 
     #[bundle]
     mesh: MaterialMesh2dBundle<Material>,
+    collision_groups: CollisionGroups,
 }
 
 impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
@@ -47,6 +48,7 @@ impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
                 )),
                 ..default()
             },
+            collision_groups: CollisionGroups::new(WALL_BIT, WALL_FILTER),
         })
     }
 }

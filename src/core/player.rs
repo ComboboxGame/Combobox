@@ -1,7 +1,10 @@
+use crate::core::{MapBoundaries, PLAYER_BIT, PLAYER_FILTER};
+
+use bevy::render::camera::RenderTarget;
 use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_rapier2d::dynamics::CoefficientCombineRule;
 use bevy_rapier2d::prelude::{
-    Collider, ExternalImpulse, Friction, LockedAxes, QueryFilter, RapierContext,
+    Collider, CollisionGroups, ExternalImpulse, Friction, LockedAxes, QueryFilter, RapierContext,
     ReadMassProperties, RigidBody, Velocity,
 };
 
@@ -43,13 +46,14 @@ impl PlayerSprite {
 
 #[derive(Component)]
 pub struct Player {
-    max_speed: f32,
-    max_acceleration: f32,
-    jump_impulse: f32,
+    pub max_speed: f32,
+    pub max_acceleration: f32,
+    pub jump_impulse: f32,
+    pub id: u32,
 }
 
 impl Player {
-    pub fn spawn(mut commands: Commands, asset_server: Res<AssetServer>, pos: Vec2) {
+    pub fn spawn(commands: &mut Commands, asset_server: &AssetServer, id: u32) -> Entity {
         let player_sprite = commands
             .spawn_bundle(SpriteBundle {
                 texture: asset_server.load("img/cat.png"),
@@ -63,14 +67,12 @@ impl Player {
             .id();
 
         commands
-            .spawn_bundle(TransformBundle {
-                local: Transform::from_xyz(pos.x, pos.y, 0.),
-                global: GlobalTransform::from_xyz(pos.x, pos.y, 0.),
-            })
+            .spawn_bundle(TransformBundle::default())
             .insert(Player {
                 max_speed: 200.,
                 max_acceleration: 850.0,
                 jump_impulse: 2000000.,
+                id,
             })
             .insert(Collider::cuboid(50., 30.))
             .insert(RigidBody::Dynamic)
@@ -78,12 +80,14 @@ impl Player {
             .insert(LockedAxes::ROTATION_LOCKED)
             .insert(ExternalImpulse::default())
             .insert(ReadMassProperties::default())
+            .insert(CollisionGroups::new(PLAYER_BIT, PLAYER_FILTER))
             .insert(Friction {
                 coefficient: 0.0,
                 combine_rule: CoefficientCombineRule::Min,
             })
             .insert_bundle(VisibilityBundle::default())
-            .add_child(player_sprite);
+            .add_child(player_sprite)
+            .id()
     }
 
     pub fn move_player(
@@ -117,7 +121,13 @@ impl Player {
     }
 
     pub fn jump_player(
-        mut players: Query<(Entity, &mut ExternalImpulse, &Player, &Transform, &Collider)>,
+        mut players: Query<(
+            Entity,
+            &mut ExternalImpulse,
+            &Player,
+            &GlobalTransform,
+            &Collider,
+        )>,
         rapier_context: Res<RapierContext>,
         keys: Res<Input<KeyCode>>,
     ) {
@@ -140,7 +150,7 @@ impl Player {
 
                 let mut can_jump = false;
                 for i in 0..4 {
-                    let start_point = transform.translation.xy()
+                    let start_point = transform.translation().xy()
                         - Vec2::new(
                             collider.half_extents().x * (1. - 2. / (i as f32)),
                             collider.half_extents().y,
@@ -160,12 +170,56 @@ impl Player {
     }
 
     pub fn camera_follow(
-        mut players: Query<&Transform, With<Player>>,
-        mut cameras: Query<&mut Transform, (With<Camera2d>, Without<Player>)>,
+        mut players: Query<&GlobalTransform, With<Player>>,
+        mut cameras: Query<(&mut Transform, &Camera), (With<Camera2d>, Without<Player>)>,
+        boundaries: Res<MapBoundaries>,
+        windows: Res<Windows>,
+        images: Res<Assets<Image>>,
     ) {
         for player in players.iter_mut() {
-            for mut camera in cameras.iter_mut() {
-                camera.translation = player.translation * 0.08 + camera.translation * 0.92;
+            for (mut transform, camera) in cameras.iter_mut() {
+                let mut pos: Vec3 = player.translation() * 0.08 + transform.translation * 0.92;
+
+                if let Some(rect) = boundaries.rect {
+                    let _viewport = match &camera.target {
+                        RenderTarget::Window(window_id) => {
+                            windows.get(*window_id).and_then(|window| {
+                                Some(UVec2::new(
+                                    window.physical_width(),
+                                    window.physical_height(),
+                                ))
+                            })
+                        }
+                        RenderTarget::Image(image_handle) => {
+                            images.get(&image_handle).map(|image| {
+                                UVec2::new(
+                                    image.texture_descriptor.size.width,
+                                    image.texture_descriptor.size.height,
+                                )
+                            })
+                        }
+                    }
+                    .unwrap();
+
+                    // matrix for undoing the projection and camera transform
+                    let ndc_to_world =
+                        transform.compute_matrix() * camera.projection_matrix().inverse();
+
+                    // use it to convert ndc to world-space coordinates
+                    let world_pos = ndc_to_world.project_point3(Vec2::ONE.extend(-1.0));
+
+                    // reduce it to a 2D value
+                    let world_pos: Vec2 = (world_pos - transform.translation).truncate();
+
+                    pos.x = pos
+                        .x
+                        .clamp(rect.min.x + world_pos.x, rect.max.x - world_pos.x);
+                    pos.y = pos
+                        .y
+                        .clamp(rect.min.y + world_pos.y, rect.max.y - world_pos.y);
+                }
+
+                transform.translation = pos;
             }
         }
     }

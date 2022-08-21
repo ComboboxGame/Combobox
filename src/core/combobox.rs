@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use bevy_rapier2d::rapier::prelude::QueryFilterFlags;
 
-use crate::core::ComboboxBundle;
+use crate::core::{ComboboxBundle, COMBOBOX_BIT, COMBOBOX_FILTER};
 use crate::game::{GameState, Material};
 
 #[derive(Clone, Debug)]
@@ -195,7 +195,9 @@ fn animation(
             if *animation_time >= ComboboxState::SPAWN_TIME {
                 new_state = Some(ComboboxState::Normal);
                 commands.entity(entity).insert(RigidBody::Dynamic);
-                commands.entity(entity).insert(CollisionGroups::default());
+                commands
+                    .entity(entity)
+                    .insert(CollisionGroups::new(COMBOBOX_BIT, COMBOBOX_FILTER));
             }
         }
         if let ComboboxState::DespawningAnimation(animation_time) = &mut *combobox_state {
@@ -282,12 +284,13 @@ fn despawn(mut commands: Commands, mut comboboxes: Query<(Entity, &ComboboxState
 
 fn merge(
     mut commands: Commands,
-    comboboxes: Query<(Entity, &Combobox, &Transform, &ComboboxState)>,
+    comboboxes: Query<(Entity, &Parent, &Combobox, &Transform, &ComboboxState)>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<Material>>,
 ) {
-    'outer: for (i, (a, combobox_a, transform_a, state_a)) in comboboxes.iter().enumerate() {
-        for (j, (b, combobox_b, transform_b, state_b)) in comboboxes.iter().enumerate() {
+    'outer: for (i, (a, parent, combobox_a, transform_a, state_a)) in comboboxes.iter().enumerate()
+    {
+        for (j, (b, _, combobox_b, transform_b, state_b)) in comboboxes.iter().enumerate() {
             if i >= j {
                 continue;
             }
@@ -304,12 +307,15 @@ fn merge(
             {
                 if let Some(merge) = Combobox::merge(combobox_a, pos_a, combobox_b, pos_b) {
                     for (combobox_new, pos_new) in merge {
-                        commands.spawn_bundle(ComboboxBundle::new(
-                            combobox_new,
-                            pos_new,
-                            &mut meshes,
-                            &mut materials,
-                        ));
+                        let id = commands
+                            .spawn_bundle(ComboboxBundle::new(
+                                combobox_new,
+                                pos_new,
+                                &mut meshes,
+                                &mut materials,
+                            ))
+                            .id();
+                        commands.entity(parent.get()).add_child(id);
                     }
                     commands
                         .entity(a)
