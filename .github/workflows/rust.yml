@@ -23,7 +23,7 @@ jobs:
     - name: Building wasm
       run: wasm-bindgen --out-dir ./out/ --target web ./target/wasm32-unknown-unknown/debug/combobox-game.wasm
     - name: Create build folder
-      run: mkdir build && xcopy .\assets .\build\assets /E/C/I && xcopy .\index.html .\build && xcopy .\out .\build\out /E/C/I
+      run: mkdir build; cp -r .\assets .\build\assets; cp .\index.html .\build; cp -r .\out .\build\out
     - name: Push wasm build artifacts to git hub pages branch
       uses: s0/git-publish-subdir-action@develop
       env:
