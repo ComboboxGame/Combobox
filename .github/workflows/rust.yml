@@ -22,11 +22,13 @@ jobs:
       run: cargo build --target wasm32-unknown-unknown
     - name: Building wasm
       run: wasm-bindgen --out-dir ./out/ --target web ./target/wasm32-unknown-unknown/debug/combobox-game.wasm
-    - name: Push wasm artifacts to git hub pages branch
+    - name: Create build folder
+      run: mkdir build && xcopy .\assets .\build\assets /E/C/I && xcopy .\index.html .\build && xcopy .\out .\build\out /E/C/I
+    - name: Push wasm build artifacts to git hub pages branch
       uses: s0/git-publish-subdir-action@develop
       env:
         REPO: self
         BRANCH: gh-pages
-        FOLDER: out
+        FOLDER: build
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         MESSAGE: "Master build update"
