@@ -24,6 +24,7 @@ impl Plugin for GamePlugin {
             app.add_state(GameState::Game);
         } else {
             app.add_state(GameState::MainMenu);
+            app.insert_resource(Msaa { samples: 1 });
         }
         app.add_startup_system(setup_camera);
         app.add_plugin(LevelsPlugin);

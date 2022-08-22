@@ -4,7 +4,7 @@ use bevy_rapier2d::prelude::*;
 
 use bevy_rapier2d::rapier::prelude::QueryFilterFlags;
 
-use crate::core::gravity::G;
+use crate::core::gravity::GRAVITY;
 use crate::core::{ComboboxBundle, Material, COMBOBOX_BIT, COMBOBOX_FILTER};
 use crate::game::GameState;
 
@@ -319,7 +319,7 @@ fn change_direction(
     for (combobox, handle) in comboboxes.iter() {
         if let Some(mut gravity) = combobox.local_gravity {
             if let Some(rb) = context.bodies.get_mut(handle.0) {
-                gravity = gravity * G * rb.mass();
+                gravity = gravity * GRAVITY * rb.mass();
                 rb.set_gravity_scale(0., true);
                 rb.reset_forces(true);
                 rb.add_force(Vec2::new(gravity.x, gravity.y).into(), true);
@@ -338,7 +338,7 @@ fn change_gravity(
     for combobox in comboboxes.iter() {
         if matches!(combobox.box_type, ComboboxType::Gravity) {
             if let Some(gravity) = combobox.local_gravity {
-                config.gravity = gravity * G;
+                config.gravity = gravity * GRAVITY;
                 gravity_change_flag = true;
             }
         }
