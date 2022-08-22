@@ -9,7 +9,6 @@ edition = "2021"
 bevy = { version="0.8.0", default-features=false, features=["bevy_ui", "bevy_text", "bevy_winit", "png", "filesystem_watcher"] }
 post-processing={ path="post-processing" }
 bevy_rapier2d = "0.16.1"
-nalgebra = "0.31.1"
 
 [target.wasm32-unknown-unknown]
 runner = "wasm-server-runner"

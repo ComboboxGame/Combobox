@@ -2,12 +2,9 @@ use bevy::ecs::system::EntityCommands;
 use bevy::prelude::shape::Quad;
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
-use bevy_rapier2d::prelude::{
-    Collider, CollisionGroups, ExternalImpulse, LockedAxes, ReadMassProperties, RigidBody, Velocity,
-};
+use bevy_rapier2d::prelude::*;
 
-use crate::core::{Combobox, ComboboxState, ComboboxType, MapBuilder};
-use crate::game::Material;
+use crate::core::{Combobox, ComboboxState, ComboboxType, MapBuilder, Material};
 
 #[derive(Bundle)]
 pub struct ComboboxBundle {
@@ -33,14 +30,14 @@ impl ComboboxBundle {
         assets: &mut AssetServer,
     ) -> Self {
         let color = match combobox.box_type {
-            ComboboxType::Standard { .. } => Color::rgb_u8(255, 140, 90),
-            ComboboxType::Buf => Color::rgb_u8(108, 130, 0),
+            ComboboxType::Standard { .. } => Color::rgb_u8(87, 255, 162),
+            ComboboxType::Buf => Color::rgb(2.0, 3.0, 0.5),
             ComboboxType::Undo => Color::rgb_u8(152, 88, 255),
             ComboboxType::Gravity => Color::rgb_u8(211, 42, 42),
             ComboboxType::Direction { .. } => Color::rgb_u8(255, 182, 193),
             ComboboxType::Lamp { .. } => Color::rgb_u8(255, 215, 0),
         };
-        let image = assets.load("images/box-default.png");
+        let image = assets.load("images/box-default-2.png");
 
         let mut material = Material::from(color);
         material.texture = Some(image);

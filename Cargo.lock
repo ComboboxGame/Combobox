@@ -870,7 +870,6 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy_rapier2d",
- "nalgebra",
  "post-processing",
 ]
 
@@ -2061,6 +2060,7 @@ name = "post-processing"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bitflags",
  "bytemuck",
  "wgpu",
 ]

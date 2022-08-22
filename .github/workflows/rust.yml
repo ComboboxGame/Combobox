@@ -19,9 +19,9 @@ jobs:
     - name: Installing wasm cli
       run: cargo install -f wasm-bindgen-cli
     - name: Build
-      run: cargo build --target wasm32-unknown-unknown
+      run: cargo build --target wasm32-unknown-unknown --release
     - name: Building wasm
-      run: wasm-bindgen --out-dir ./out/ --target web ./target/wasm32-unknown-unknown/debug/combobox-game.wasm
+      run: wasm-bindgen --out-dir ./out/ --target web ./target/wasm32-unknown-unknown/release/combobox-game.wasm
     - name: Push wasm build artifacts to git hub pages branch
       run: |
         git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"

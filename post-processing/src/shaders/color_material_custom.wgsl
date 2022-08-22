@@ -7,6 +7,7 @@ struct ColorMaterial {
     flags: u32,
 };
 let COLOR_MATERIAL_FLAGS_TEXTURE_BIT: u32 = 1u;
+let COLOR_MATERIAL_FLAGS_EMISSIVE_BIT: u32 = 2u;
 
 @group(1) @binding(0)
 var<uniform> material: ColorMaterial;
@@ -15,9 +16,9 @@ var texture: texture_2d<f32>;
 @group(1) @binding(2)
 var texture_sampler: sampler;
 @group(1) @binding(3)
-var normal: texture_2d<f32>;
+var emissive: texture_2d<f32>;
 @group(1) @binding(4)
-var normal_sampler: sampler;
+var emissive_sampler: sampler;
 
 @group(2) @binding(0)
 var<uniform> mesh: Mesh2d;
@@ -39,22 +40,16 @@ fn hsl2rgb(c: vec3<f32>) -> vec3<f32>
 fn fragment(in: FragmentInput) -> @location(0) vec4<f32> {
     var output_color: vec4<f32> = material.color;
     if ((material.flags & COLOR_MATERIAL_FLAGS_TEXTURE_BIT) != 0u) {
+        var texture_color = textureSample(texture, texture_sampler, in.uv);
+        if ((material.flags & COLOR_MATERIAL_FLAGS_EMISSIVE_BIT) != 0u) {
+            let emissive = textureSample(emissive, emissive_sampler, in.uv);
+            texture_color = texture_color + vec4(emissive.rgb * emissive.a, 0.0) * 5.0;
+        }
 #ifdef VERTEX_COLORS
-        output_color = output_color * textureSample(texture, texture_sampler, in.uv) * in.color;
+        output_color = output_color * texture_color * in.color;
 #else
-        output_color = output_color * textureSample(texture, texture_sampler, in.uv);
+        output_color = output_color * texture_color;
 #endif
-        /*var N = textureSample(normal, normal_sampler, in.uv).xyz;
-        let gamma = 2.2;
-        N = vec3(pow(N.x, 1.0 / gamma), pow(N.y, 1.0 / gamma), pow(N.z, 1.0 / gamma)) * 2.0 - 1.0;
-
-        N = normalize((mat3x3<f32>(
-                                   mesh.inverse_transpose_model[0].xyz,
-                                   mesh.inverse_transpose_model[1].xyz,
-                                   mesh.inverse_transpose_model[2].xyz
-                               ) * N));
-        let light = clamp(dot(normalize(vec3(0.1, 0.3, 0.1)), N), 0.0, 1.0) * 2.0;
-        output_color = vec4(output_color.xyz * light, output_color.w);*/
     }
 
     return output_color;

@@ -43,6 +43,10 @@ fn interaction(
                     *level = Levels::Level0;
                     game_state.set(GameState::Game).unwrap()
                 }
+                LevelMenuButton::Level1 => {
+                    *level = Levels::Level1;
+                    game_state.set(GameState::Game).unwrap()
+                }
                 _ => {}
             },
             _ => {}

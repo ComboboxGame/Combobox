@@ -1,14 +1,12 @@
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
-use bevy_rapier2d::na::vector;
 use bevy_rapier2d::prelude::*;
+
 use bevy_rapier2d::rapier::prelude::QueryFilterFlags;
-use nalgebra;
 
-use crate::core::{ComboboxBundle, COMBOBOX_BIT, COMBOBOX_FILTER};
-use crate::game::{GameState, Material};
-
-use super::G;
+use crate::core::gravity::G;
+use crate::core::{ComboboxBundle, Material, COMBOBOX_BIT, COMBOBOX_FILTER};
+use crate::game::GameState;
 
 #[derive(Clone, Debug)]
 pub enum ComboboxType {
@@ -324,7 +322,7 @@ fn change_direction(
                 gravity = gravity * G * rb.mass();
                 rb.set_gravity_scale(0., true);
                 rb.reset_forces(true);
-                rb.add_force(vector![gravity.x, gravity.y], true);
+                rb.add_force(Vec2::new(gravity.x, gravity.y).into(), true);
             }
         }
     }

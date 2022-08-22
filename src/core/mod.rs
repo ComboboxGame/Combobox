@@ -3,17 +3,19 @@ use bevy_rapier2d::prelude::*;
 
 mod combobox;
 mod elevator;
+mod gravity;
 mod map;
+mod material;
 mod player;
 
 pub use combobox::*;
 pub use elevator::*;
+pub use gravity::*;
 pub use map::*;
+pub use material::*;
 pub use player::*;
 
 pub struct CorePlugin;
-
-pub const G: f32 = 9.8 * 100.;
 
 pub const WALL_BIT: u32 = 1 << 0;
 pub const COMBOBOX_BIT: u32 = 1 << 1;
@@ -29,8 +31,9 @@ impl Plugin for CorePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default());
 
-        //#[cfg(debug_assertions)]
-        //app.add_plugin(RapierDebugRenderPlugin::default());
+        #[cfg(debug_assertions)]
+        app.add_plugin(RapierDebugRenderPlugin::default());
+
         app.insert_resource(RapierConfiguration {
             gravity: Vec2::new(0., -G),
             ..Default::default()

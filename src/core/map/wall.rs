@@ -1,5 +1,4 @@
-use crate::core::{MapBuilder, WALL_BIT, WALL_FILTER};
-use crate::game::Material;
+use crate::core::{MapBuilder, Material, WALL_BIT, WALL_FILTER};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::shape::Quad;
 use bevy::prelude::*;

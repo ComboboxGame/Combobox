@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 // todo: do warn(dead_code) sometimes, too noisy during development
 
-use bevy::{asset::AssetServerSettings, prelude::*, window::PresentMode};
+use bevy::{asset::AssetServerSettings, prelude::*};
 
 use crate::game::GamePlugin;
 use crate::utils::FpsPlugin;
@@ -14,12 +14,6 @@ mod utils;
 
 fn main() {
     let mut app = App::new();
-
-    // Infinite FPS for debugging
-    app.insert_resource(WindowDescriptor {
-        present_mode: PresentMode::Fifo,
-        ..default()
-    });
 
     // Watch for file system changes (shaders, textures etc)
     app.insert_resource(AssetServerSettings {
@@ -35,6 +29,7 @@ fn main() {
     app.add_plugin(post_processing::Core2dCustomPlugin);
 
     // Show fps in corner of the screen
+    #[cfg(debug_assertions)]
     app.add_plugin(FpsPlugin);
 
     // Our incredible game plugin

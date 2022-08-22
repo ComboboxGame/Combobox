@@ -2,10 +2,9 @@ use bevy::ecs::system::EntityCommands;
 use bevy::prelude::shape::Quad;
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
-use bevy_rapier2d::prelude::{Collider, CollisionGroups, RigidBody};
+use bevy_rapier2d::prelude::*;
 
-use crate::core::{Elevator, ElevatorType, MapBuilder, ELEVATOR_BIT, ELEVATOR_FILTER};
-use crate::game::Material;
+use crate::core::{Elevator, ElevatorType, MapBuilder, Material, ELEVATOR_BIT, ELEVATOR_FILTER};
 
 #[derive(Bundle)]
 pub struct ElevatorBundle {
@@ -27,9 +26,11 @@ impl ElevatorBundle {
         ElevatorBundle {
             elevator,
             rigid_body: RigidBody::KinematicPositionBased,
-            collider: Collider::cuboid(30.0, 3.0),
+            collider: Collider::cuboid(Elevator::WIDTH * 0.5, Elevator::HEIGHT * 0.5),
             mesh_bundle: MaterialMesh2dBundle {
-                mesh: Mesh2dHandle(meshes.add(Quad::new(Vec2::new(60.0, 6.0)).into())),
+                mesh: Mesh2dHandle(
+                    meshes.add(Quad::new(Vec2::new(Elevator::WIDTH, Elevator::HEIGHT)).into()),
+                ),
                 material: materials.add(Color::BLUE.into()),
                 transform: Transform::from_xyz(start.x, start.y, -1.0),
                 ..MaterialMesh2dBundle::default()

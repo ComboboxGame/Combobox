@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::game::GameState;
-use crate::gui::buttons::spawn_basic_button;
+
 use crate::gui::TRANSPARENT_COLOR;
 
 #[derive(Debug, Clone)]
@@ -39,8 +39,8 @@ fn interaction(
 #[derive(Component)]
 pub struct GameMenuNode;
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let font = asset_server.load("fonts/roboto.ttf");
+fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
+    //let font = asset_server.load("fonts/roboto.ttf");
 
     commands
         .spawn_bundle(NodeBundle {
@@ -54,8 +54,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             color: TRANSPARENT_COLOR,
             ..default()
         })
-        .with_children(|parent| {
-            spawn_basic_button(parent, font.clone(), "Restart", GameMenuButton::Restart);
+        .with_children(|_parent| {
+            //spawn_basic_button(parent, font.clone(), "Restart", GameMenuButton::Restart);
         })
         .insert(GameMenuNode);
 }

@@ -9,7 +9,7 @@ use bevy::render::{
 };
 
 use bevy::sprite::{
-    ColorMaterialFlags, Material2d, Material2dKey, Material2dPlugin,
+    Material2d, Material2dKey, Material2dPlugin,
 };
 use crate::CUSTOM_MATERIAL;
 
@@ -44,7 +44,7 @@ pub struct ColorMaterialCustom {
 
     #[texture(3)]
     #[sampler(4)]
-    pub normal: Option<Handle<Image>>,
+    pub emissive: Option<Handle<Image>>,
 }
 
 impl Default for ColorMaterialCustom {
@@ -52,7 +52,7 @@ impl Default for ColorMaterialCustom {
         ColorMaterialCustom {
             color: Color::WHITE,
             texture: None,
-            normal: None,
+            emissive: None,
         }
     }
 }
@@ -79,7 +79,7 @@ impl From<(Handle<Image>, Handle<Image>)> for ColorMaterialCustom {
     fn from(texture: (Handle<Image>, Handle<Image>)) -> Self {
         ColorMaterialCustom {
             texture: Some(texture.0),
-            normal: Some(texture.1),
+            emissive: Some(texture.1),
             ..Default::default()
         }
     }
@@ -92,14 +92,28 @@ pub struct ColorMaterialCustomUniform {
     pub flags: u32,
 }
 
+// NOTE: These must match the bit flags in bevy_sprite/src/mesh2d/color_material.wgsl!
+bitflags::bitflags! {
+    #[repr(transparent)]
+    pub struct ColorMaterialFlagsCustom: u32 {
+        const TEXTURE           = (1 << 0);
+        const EMISSIVE           = (1 << 1);
+        const NONE              = 0;
+        const UNINITIALIZED     = 0xFFFF;
+    }
+}
+
 impl AsBindGroupShaderType<ColorMaterialCustomUniform> for ColorMaterialCustom {
     fn as_bind_group_shader_type(
         &self,
         _images: &RenderAssets<Image>,
     ) -> ColorMaterialCustomUniform {
-        let mut flags = ColorMaterialFlags::NONE;
+        let mut flags = ColorMaterialFlagsCustom::NONE;
         if self.texture.is_some() {
-            flags |= ColorMaterialFlags::TEXTURE;
+            flags |= ColorMaterialFlagsCustom::TEXTURE;
+        }
+        if self.emissive.is_some() {
+            flags |= ColorMaterialFlagsCustom::EMISSIVE;
         }
 
         ColorMaterialCustomUniform {
@@ -125,9 +139,10 @@ impl Material2d for ColorMaterialCustom {
             .targets
             .push(Some(ColorTargetState {
                 format: TextureFormat::Rgba32Float,
-                blend: None,
+                blend: Some(BlendState::ALPHA_BLENDING),
                 write_mask: ColorWrites::ALL,
             }));
+        descriptor.primitive.cull_mode = None;
 
         Ok(())
     }

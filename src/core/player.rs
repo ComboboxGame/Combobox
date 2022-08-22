@@ -1,114 +1,42 @@
-use crate::core::{MapBoundaries, PLAYER_BIT, PLAYER_FILTER};
+use crate::core::{MapBoundaries, PlayerRectState};
 
-use bevy::prelude::shape::Quad;
+use crate::core::gravity::GravityDirection;
+
 use bevy::render::camera::RenderTarget;
-use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
+
 use bevy::{math::Vec3Swizzles, prelude::*};
-use bevy_rapier2d::dynamics::CoefficientCombineRule;
+
 use bevy_rapier2d::prelude::{
-    Collider, CollisionGroups, ExternalImpulse, Friction, LockedAxes, QueryFilter,
-    RapierConfiguration, RapierContext, ReadMassProperties, RigidBody, Velocity,
+    Collider, ExternalImpulse, QueryFilter, RapierConfiguration, RapierContext, ReadMassProperties,
+    Velocity,
 };
-use std::f32::consts::PI;
 
-use crate::game::{GameState, Material};
-
-#[derive(Component)]
-pub struct PlayerSprite;
-
-impl PlayerSprite {
-    fn turn_player(
-        mut query: Query<&mut Transform, With<PlayerSprite>>,
-        keys: Res<Input<KeyCode>>,
-        config: ResMut<RapierConfiguration>,
-    ) {
-        for mut transform in query.iter_mut() {
-            transform.rotation = Quat::from_axis_angle(Vec3::Z, PI * 2.);
-
-            if config.gravity.y != 0. {
-                if keys.pressed(KeyCode::A) || keys.pressed(KeyCode::Left) {
-                    transform.scale.x = transform.scale.abs().x;
-                } else if keys.pressed(KeyCode::D) || keys.pressed(KeyCode::Right) {
-                    transform.scale.x = -transform.scale.abs().x;
-                }
-
-                if config.gravity.y > 0. {
-                    transform.scale.y = -transform.scale.abs().y;
-                } else {
-                    transform.scale.y = transform.scale.abs().y;
-                }
-            } else if config.gravity.x != 0. {
-                transform.rotation = Quat::from_axis_angle(Vec3::Z, PI / 2.);
-
-                if keys.pressed(KeyCode::W) || keys.pressed(KeyCode::Up) {
-                    transform.scale.x = -transform.scale.abs().x;
-                } else if keys.pressed(KeyCode::S) || keys.pressed(KeyCode::Down) {
-                    transform.scale.x = transform.scale.abs().x;
-                }
-
-                if config.gravity.x < 0. {
-                    transform.scale.y = -transform.scale.abs().y;
-                } else {
-                    transform.scale.y = transform.scale.abs().y;
-                }
-            }
-        }
-    }
-}
+use crate::game::GameState;
 
 #[derive(Component)]
 pub struct Player {
+    pub width: f32,
+    pub height: f32,
     pub max_speed: f32,
     pub max_acceleration: f32,
     pub jump_impulse: f32,
     pub id: u32,
 }
 
-impl Player {
-    pub fn spawn(
-        commands: &mut Commands,
-        asset_server: &AssetServer,
-        meshes: &mut Assets<Mesh>,
-        materials: &mut Assets<Material>,
-        id: u32,
-    ) -> Entity {
-        let player_sprite = commands
-            .spawn_bundle(MaterialMesh2dBundle {
-                material: materials.add(Material::from(asset_server.load("images/robot.png"))),
-                mesh: Mesh2dHandle(meshes.add(Quad::new(Vec2::new(100.0, 100.0)).into())),
-                transform: Transform {
-                    scale: Vec3::new(1.0, 1.0, 1.),
-                    ..Default::default()
-                },
-                ..Default::default()
-            })
-            .insert(PlayerSprite)
-            .id();
-
-        commands
-            .spawn_bundle(TransformBundle::default())
-            .insert(Player {
-                max_speed: 200.,
-                max_acceleration: 850.0,
-                jump_impulse: 600.,
-                id,
-            })
-            .insert(Collider::cuboid(50., 50.))
-            .insert(RigidBody::Dynamic)
-            .insert(Velocity::default())
-            .insert(LockedAxes::ROTATION_LOCKED)
-            .insert(ExternalImpulse::default())
-            .insert(ReadMassProperties::default())
-            .insert(CollisionGroups::new(PLAYER_BIT, PLAYER_FILTER))
-            .insert(Friction {
-                coefficient: 0.0,
-                combine_rule: CoefficientCombineRule::Min,
-            })
-            .insert_bundle(VisibilityBundle::default())
-            .add_child(player_sprite)
-            .id()
+impl Default for Player {
+    fn default() -> Self {
+        Player {
+            width: 60.0,
+            height: 100.0,
+            max_speed: 200.,
+            max_acceleration: 1850.0,
+            jump_impulse: 600.,
+            id: 0,
+        }
     }
+}
 
+impl Player {
     pub fn move_player(
         mut players: Query<(
             &mut ExternalImpulse,
@@ -157,50 +85,60 @@ impl Player {
             Entity,
             &mut ExternalImpulse,
             &Player,
+            &Velocity,
             &GlobalTransform,
             &Collider,
             &ReadMassProperties,
         )>,
         rapier_context: Res<RapierContext>,
         keys: Res<Input<KeyCode>>,
-        config: ResMut<RapierConfiguration>,
+        config: Res<RapierConfiguration>,
     ) {
+        let gravity_direction = GravityDirection::get_from_config(&config);
+
         let hits_floor = |entity: Entity, pos: Vec2| -> bool {
             let dir = config.gravity.normalize();
             rapier_context
                 .cast_ray(
                     pos,
                     dir,
-                    5.,
+                    1.,
                     true,
                     QueryFilter::new().exclude_collider(entity),
                 )
                 .is_some()
         };
 
-        for (entity, mut ext_impulse, player, transform, collider, mass) in players.iter_mut() {
-            if keys.pressed(KeyCode::Space) {
+        for (entity, mut ext_impulse, player, velocity, transform, collider, mass) in
+            players.iter_mut()
+        {
+            if keys.any_pressed(player.get_buttons_jump(gravity_direction)) {
                 let collider = collider.as_cuboid().unwrap();
 
                 let mut can_jump = false;
-                for i in 0..4 {
+                let intervals = 4;
+                for i in 0..intervals {
                     let bottom;
 
                     if config.gravity.y != 0. {
                         bottom = Vec2::new(
-                            collider.half_extents().x * (0.98 - 1.96 / (i as f32)),
+                            collider.half_extents().x
+                                * (0.9 - 1.8 * (i as f32) / ((intervals - 1) as f32)),
                             collider.half_extents().y * -config.gravity.y.signum(),
                         );
                     } else {
                         bottom = Vec2::new(
                             collider.half_extents().x * -config.gravity.x.signum(),
-                            collider.half_extents().y * (0.98 - 1.96 / (i as f32)),
+                            collider.half_extents().y
+                                * (0.9 - 1.8 * (i as f32) / ((intervals - 1) as f32)),
                         );
                     }
 
                     let start_point = transform.translation().xy() - bottom;
 
-                    if hits_floor(entity, start_point) {
+                    if hits_floor(entity, start_point)
+                        && velocity.linvel.dot(gravity_direction.get_vec()).abs() < 2.0
+                    {
                         can_jump = true;
                         break;
                     }
@@ -212,6 +150,95 @@ impl Player {
                 }
             }
         }
+    }
+
+    fn update_rect_state(
+        mut commands: Commands,
+        mut query: Query<(Entity, &mut PlayerRectState, &Player, &GlobalTransform)>,
+        keys: Res<Input<KeyCode>>,
+        config: Res<RapierConfiguration>,
+        context: Res<RapierContext>,
+    ) {
+        let gravity_direction = GravityDirection::get_from_config(&config);
+        for (entity, mut rect_state, player, transform) in query.iter_mut() {
+            let prev_rotation = rect_state.current_rotation;
+            let prev_state = rect_state.current_state;
+
+            rect_state.current_rotation = gravity_direction.get_index();
+
+            let legs_origin = transform.translation().xy() + gravity_direction.get_vec() * 10.0;
+
+            if keys.any_pressed(player.get_buttons_right(gravity_direction)) {
+                if let Some(_) = context.cast_ray(
+                    legs_origin,
+                    player.get_right_direction(gravity_direction),
+                    player.width * 0.6,
+                    true,
+                    QueryFilter::new().exclude_collider(entity),
+                ) {
+                    rect_state.current_state = 1;
+                } else {
+                    rect_state.current_state = 3;
+                }
+            } else if keys.any_pressed(player.get_buttons_left(gravity_direction)) {
+                if let Some(_) = context.cast_ray(
+                    legs_origin,
+                    player.get_left_direction(gravity_direction),
+                    player.width * 0.6,
+                    true,
+                    QueryFilter::new().exclude_collider(entity),
+                ) {
+                    rect_state.current_state = 0;
+                } else {
+                    rect_state.current_state = 2;
+                }
+            } else {
+                // rect_state.current_state = 4;
+            }
+
+            if prev_rotation != rect_state.current_rotation
+                || prev_state != rect_state.current_state
+            {
+                commands
+                    .entity(entity)
+                    .insert_bundle(rect_state.get_current_bundle());
+            }
+        }
+    }
+
+    pub fn get_buttons_right(&self, gravity_direction: GravityDirection) -> Vec<KeyCode> {
+        match gravity_direction {
+            GravityDirection::Down => vec![KeyCode::D, KeyCode::Right],
+            GravityDirection::Right => vec![KeyCode::W, KeyCode::Up],
+            GravityDirection::Up => vec![KeyCode::A, KeyCode::Left],
+            GravityDirection::Left => vec![KeyCode::S, KeyCode::Down],
+        }
+    }
+
+    pub fn get_buttons_left(&self, gravity_direction: GravityDirection) -> Vec<KeyCode> {
+        match gravity_direction {
+            GravityDirection::Down => vec![KeyCode::A, KeyCode::Left],
+            GravityDirection::Right => vec![KeyCode::S, KeyCode::Down],
+            GravityDirection::Up => vec![KeyCode::D, KeyCode::Right],
+            GravityDirection::Left => vec![KeyCode::W, KeyCode::Up],
+        }
+    }
+
+    pub fn get_buttons_jump(&self, gravity_direction: GravityDirection) -> Vec<KeyCode> {
+        match gravity_direction {
+            GravityDirection::Down => vec![KeyCode::W, KeyCode::Up, KeyCode::Space],
+            GravityDirection::Right => vec![KeyCode::A, KeyCode::Left, KeyCode::Space],
+            GravityDirection::Up => vec![KeyCode::S, KeyCode::Down, KeyCode::Space],
+            GravityDirection::Left => vec![KeyCode::D, KeyCode::Right, KeyCode::Space],
+        }
+    }
+
+    pub fn get_right_direction(&self, gravity_direction: GravityDirection) -> Vec2 {
+        gravity_direction.get_vec().perp()
+    }
+
+    pub fn get_left_direction(&self, gravity_direction: GravityDirection) -> Vec2 {
+        -gravity_direction.get_vec().perp()
     }
 
     pub fn camera_follow(
@@ -280,7 +307,7 @@ impl Plugin for PlayerPlugin {
             SystemSet::on_update(GameState::Game).with_system(Player::camera_follow),
         );
         app.add_system_set(
-            SystemSet::on_update(GameState::Game).with_system(PlayerSprite::turn_player),
+            SystemSet::on_update(GameState::Game).with_system(Player::update_rect_state),
         );
     }
 }

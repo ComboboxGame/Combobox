@@ -1,16 +1,17 @@
 use bevy::prelude::*;
 
+use crate::core::Material;
 pub use boundaries::*;
 pub use combobox::*;
 pub use elevator::*;
+pub use player::*;
 pub use spawn_point::*;
 pub use wall::*;
-
-use crate::game::Material;
 
 mod boundaries;
 mod combobox;
 mod elevator;
+mod player;
 mod spawn_point;
 mod wall;
 
@@ -34,7 +35,7 @@ impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
         boundaries: &'b mut MapBoundaries,
         assets: &'b mut AssetServer,
     ) -> MapBuilder<'w, 's, 'a, 'b> {
-        let wall_material = materials.add(Color::rgb_u8(255, 212, 120).into());
+        let wall_material = materials.add(Color::rgb(0.1, 0.1, 0.1).into());
 
         MapBuilder {
             builder,
