@@ -222,7 +222,7 @@ fn prepare_view_targets_custom(
                             mip_level_count: 1,
                             sample_count: 1,
                             dimension: TextureDimension::D2,
-                            format: TextureFormat::Rgba32Float,
+                            format: TextureFormat::Rg11b10Float,
                             usage: TextureUsages::RENDER_ATTACHMENT
                                 | TextureUsages::TEXTURE_BINDING,
                         },
@@ -247,7 +247,7 @@ fn prepare_view_targets_custom(
                                 mip_level_count: 1,
                                 sample_count: msaa.samples,
                                 dimension: TextureDimension::D2,
-                                format: TextureFormat::Rgba32Float,
+                                format: TextureFormat::Rg11b10Float,
                                 usage: TextureUsages::RENDER_ATTACHMENT
                                     | TextureUsages::TEXTURE_BINDING,
                             },

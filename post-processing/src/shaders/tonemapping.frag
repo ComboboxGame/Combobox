@@ -20,7 +20,7 @@ vec3 tonemapping(vec3 color) {
 void main() {
     ivec2 texSize = textureSize(color_texture, 0);
 
-    vec4 color = texelFetch(sampler2D(color_texture, default_sampler), ivec2(uv.xy * texSize), int(gl_SampleID)).rgba;
+    vec4 color = texelFetch(sampler2D(color_texture, default_sampler), ivec2(uv.xy * texSize), 0).rgba;
     out_color.xyz = tonemapping(color.xyz);
     out_color.w = color.w;
 }

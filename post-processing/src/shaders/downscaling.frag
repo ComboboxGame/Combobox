@@ -13,7 +13,7 @@ layout (location = 0) out vec4 out_color;
 
 layout(binding = 0) uniform sampler default_sampler;
 layout(binding = 1) uniform TEXTURE color_texture;
-layout(binding = 3) uniform int step;
+layout(binding = 3) uniform uvec4 step;
 
 vec4 quadratic_threshold(vec4 color, float threshold, vec3 curve) {
     float br = max(max(color.r, color.g), color.b);
@@ -53,7 +53,7 @@ void main() {
     vec2 scale = 1.0 / vec2(texSize);
     out_color = sample_13(scale);
 
-    if (step == 1) {
+    if (step.x == 1) {
         float threshold = 1.8;
         float knee = 0.1;
         vec3 curve = vec3(threshold - knee, knee * 2.0, 0.25 / knee);

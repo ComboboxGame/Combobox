@@ -104,7 +104,7 @@ impl Node for BloomNode {
         for i in 1..bloom_targets.mips {
             let slot = if i + 1 == bloom_targets.mips { 1 } else { 0 };
 
-            let mut uniform = UniformBuffer::from(i);
+            let mut uniform = UniformBuffer::from(UVec4::new(i as u32, 0,0,0));
             uniform.write_buffer(render_device, render_queue);
 
             let pass_descriptor = RenderPassDescriptor {
@@ -157,7 +157,7 @@ impl Node for BloomNode {
                 depth_stencil_attachment: None,
             };
 
-            let mut uniform = UniformBuffer::from(i);
+            let mut uniform = UniformBuffer::from(UVec4::new(i as u32, 0,0,0));
             uniform.write_buffer(render_device, render_queue);
 
             let render_pass = render_context
@@ -247,7 +247,7 @@ impl FromWorld for BloomPipeline {
                         ty: BindingType::Buffer {
                             ty: BufferBindingType::Uniform,
                             has_dynamic_offset: false,
-                            min_binding_size: None,
+                            min_binding_size: std::num::NonZeroU64::new(16),
                         },
                         visibility: ShaderStages::FRAGMENT,
                         count: None,
@@ -273,7 +273,7 @@ impl FromWorld for BloomPipeline {
                     shader_defs: vec![],
                     entry_point: "main".into(),
                     targets: vec![Some(ColorTargetState {
-                        format: TextureFormat::Rgba32Float,
+                        format: TextureFormat::Rg11b10Float,
                         blend: Some(BlendState::ALPHA_BLENDING),
                         write_mask: ColorWrites::ALL,
                     })],
@@ -331,7 +331,7 @@ impl FromWorld for BloomPipeline {
                         ty: BindingType::Buffer {
                             ty: BufferBindingType::Uniform,
                             has_dynamic_offset: false,
-                            min_binding_size: None,
+                            min_binding_size: std::num::NonZeroU64::new(16),
                         },
                         visibility: ShaderStages::FRAGMENT,
                         count: None,
@@ -356,7 +356,7 @@ impl FromWorld for BloomPipeline {
                 shader_defs: vec![],
                 entry_point: "main".into(),
                 targets: vec![Some(ColorTargetState {
-                    format: TextureFormat::Rgba32Float,
+                    format: TextureFormat::Rg11b10Float,
                     blend: Some(BlendState::ALPHA_BLENDING),
                     write_mask: ColorWrites::ALL,
                 })],
@@ -444,7 +444,7 @@ pub fn prepare_bloom_targets(
                                 mip_level_count: MIPS,
                                 sample_count: 1,
                                 dimension: TextureDimension::D2,
-                                format: TextureFormat::Rgba32Float,
+                                format: TextureFormat::Rg11b10Float,
                                 usage: TextureUsages::RENDER_ATTACHMENT
                                     | TextureUsages::TEXTURE_BINDING,
                             },
