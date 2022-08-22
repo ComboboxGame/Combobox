@@ -35,7 +35,7 @@ impl Plugin for CorePlugin {
         app.add_plugin(RapierDebugRenderPlugin::default());
 
         app.insert_resource(RapierConfiguration {
-            gravity: Vec2::new(0., -G),
+            gravity: Vec2::new(0., -GRAVITY),
             ..Default::default()
         });
 

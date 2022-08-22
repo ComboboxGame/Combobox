@@ -1,8 +1,9 @@
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
+use bevy_rapier2d::plugin::RapierConfiguration;
 
 use crate::core::{
-    FinishPoint, MapBoundaries, MapBuilder, Material, Player, PlayerBundle, SpawnPoint,
+    FinishPoint, MapBoundaries, MapBuilder, Material, Player, PlayerBundle, SpawnPoint, GRAVITY,
 };
 
 use crate::game::GameState;
@@ -125,7 +126,9 @@ fn setup(
     mut clear_color: ResMut<ClearColor>,
     mut boundaries: ResMut<MapBoundaries>,
     mut assets: ResMut<AssetServer>,
+    mut config: ResMut<RapierConfiguration>,
 ) {
+    config.gravity = Vec2::NEG_Y * GRAVITY;
     commands
         .spawn()
         .insert(LevelRoot)

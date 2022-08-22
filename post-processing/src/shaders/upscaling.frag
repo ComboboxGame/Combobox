@@ -6,7 +6,7 @@ layout (location = 0) out vec4 out_color;
 layout(binding = 0) uniform sampler default_sampler;
 layout(binding = 1) uniform texture2D first_texture; // smaller
 layout(binding = 2) uniform texture2D second_texture; // bigger
-layout(binding = 3) uniform int step;
+layout(binding = 3) uniform uvec4 step;
 
 vec4 sample_tent(vec2 scale) {
     vec4 d = vec4(1.0, 1.0, -1.0, 0.0);
@@ -31,7 +31,7 @@ void main() {
     vec4 up_sample = sample_tent(scale * 1.0);
     vec4 color = texture(sampler2D(second_texture, default_sampler), uv.xy);
     
-    if (step == 1) {
+    if (step.x == 1) {
         out_color = vec4(color.rgb * 1.0 + up_sample.rgb * 0.5, 1.0);
     } else {
         out_color = vec4(color.rgb + up_sample.rgb * 0.6, 1.0);

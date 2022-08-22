@@ -138,7 +138,7 @@ impl Material2d for ColorMaterialCustom {
         (*descriptor.fragment.as_mut().unwrap())
             .targets
             .push(Some(ColorTargetState {
-                format: TextureFormat::Rgba32Float,
+                format: TextureFormat::Rg11b10Float,
                 blend: Some(BlendState::ALPHA_BLENDING),
                 write_mask: ColorWrites::ALL,
             }));

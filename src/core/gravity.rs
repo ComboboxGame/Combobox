@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier2d::plugin::RapierConfiguration;
 
-pub const G: f32 = 9.8 * 100.;
+pub const GRAVITY: f32 = 9.8 * 100.;
 
 #[derive(Clone, Debug, Copy)]
 pub enum GravityDirection {

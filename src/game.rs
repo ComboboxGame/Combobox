@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::render::RenderApp;
 use std::env;
 
 use crate::core::CorePlugin;
@@ -29,6 +30,14 @@ impl Plugin for GamePlugin {
         app.add_plugin(LevelsPlugin);
         app.add_plugin(CorePlugin);
         app.add_plugin(GuiPlugin);
+
+        // Disable msaa todo: enable by default
+        app.insert_resource(Msaa { samples: 1 });
+        let render_app = match app.get_sub_app_mut(RenderApp) {
+            Ok(render_app) => render_app,
+            Err(_) => return,
+        };
+        render_app.insert_resource(Msaa { samples: 1 });
     }
 }
 
