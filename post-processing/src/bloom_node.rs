@@ -15,7 +15,7 @@ use bevy::render::render_resource::{
     UniformBuffer, VertexBufferLayout, VertexFormat, VertexState, VertexStepMode,
 };
 use bevy::render::renderer::{RenderContext, RenderDevice, RenderQueue};
-use bevy::render::texture::{TextureCache};
+use bevy::render::texture::{CachedTexture, TextureCache};
 use bevy::render::view::{ExtractedView};
 use bevy::utils::HashMap;
 use wgpu::{
@@ -390,22 +390,21 @@ impl FromWorld for BloomPipeline {
 
 #[derive(Component)]
 pub struct BloomTargets {
-    pub views: [Vec<TextureView>; 2],
-    pub textures: [Texture; 2],
+    pub textures: [Vec<CachedTexture>; 2],
     pub mips: u32,
 }
 
 impl BloomTargets {
     pub fn get_color_attachment(&self, slot: usize, index: u32) -> RenderPassColorAttachment {
         RenderPassColorAttachment {
-            view: &self.views[slot][index as usize],
+            view: &self.textures[slot][index as usize].default_view,
             resolve_target: None,
             ops: Operations::default(),
         }
     }
 
     pub fn get_view(&self, slot: usize, index: u32) -> TextureView {
-        self.views[slot][index as usize].clone()
+        self.textures[slot][index as usize].default_view.clone()
     }
 }
 
@@ -422,53 +421,39 @@ pub fn prepare_bloom_targets(
     for (entity, camera) in &cameras {
         if let Some(target_size) = camera.physical_target_size.clone() {
             let mut textures_arr = vec![];
-            let mut views_arr = vec![];
 
-            for i in 0..2 {
-                let texture = textures_map
-                    .entry((camera.target.clone(), i))
-                    .or_insert_with(|| {
-                        texture_cache.get(
-                            &render_device,
-                            TextureDescriptor {
-                                label: if i == 0 {
-                                    Some("bloom_0")
-                                } else {
-                                    Some("bloom_1")
+            for j in 0..2 {
+                textures_arr.push((0..MIPS).map(|i| {
+                    textures_map
+                        .entry((camera.target.clone(), i, j))
+                        .or_insert_with(|| {
+                            texture_cache.get(
+                                &render_device,
+                                TextureDescriptor {
+                                    label: if i == 0 {
+                                        Some("bloom_0")
+                                    } else {
+                                        Some("bloom_1")
+                                    },
+                                    size: Extent3d {
+                                        width: target_size.x >> i,
+                                        height: target_size.y >> i,
+                                        depth_or_array_layers: 1,
+                                    },
+                                    mip_level_count: 1,
+                                    sample_count: 1,
+                                    dimension: TextureDimension::D2,
+                                    format: TextureFormat::Rg11b10Float,
+                                    usage: TextureUsages::RENDER_ATTACHMENT
+                                        | TextureUsages::TEXTURE_BINDING,
                                 },
-                                size: Extent3d {
-                                    width: target_size.x,
-                                    height: target_size.y,
-                                    depth_or_array_layers: 1,
-                                },
-                                mip_level_count: MIPS,
-                                sample_count: 1,
-                                dimension: TextureDimension::D2,
-                                format: TextureFormat::Rg11b10Float,
-                                usage: TextureUsages::RENDER_ATTACHMENT
-                                    | TextureUsages::TEXTURE_BINDING,
-                            },
-                        )
-                    });
-
-                textures_arr.push(texture.texture.clone());
-                views_arr.push(
-                    (0..MIPS)
-                        .map(|i| {
-                            texture.texture.create_view(&TextureViewDescriptor {
-                                label: None,
-                                base_mip_level: i,
-                                mip_level_count: Some(unsafe { NonZeroU32::new_unchecked(1) }),
-                                ..Default::default()
-                            })
-                        })
-                        .collect::<Vec<_>>(),
-                )
+                            )
+                        }).clone()
+                }).collect::<Vec<_>>());
             }
 
             commands.entity(entity).insert(BloomTargets {
                 textures: [textures_arr[0].clone(), textures_arr[1].clone()],
-                views: [views_arr[0].clone(), views_arr[1].clone()],
                 mips: MIPS,
             });
         }
