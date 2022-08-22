@@ -4,6 +4,7 @@
 use bevy::{asset::AssetServerSettings, prelude::*};
 
 use crate::game::GamePlugin;
+#[cfg(debug_assertions)]
 use crate::utils::FpsPlugin;
 
 mod core;
