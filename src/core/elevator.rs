@@ -1,3 +1,4 @@
+use crate::core::{ELEVATOR_BIT, ELEVATOR_FILTER};
 use crate::game::GameState;
 use bevy::prelude::*;
 use bevy_rapier2d::plugin::RapierContext;
@@ -6,7 +7,6 @@ use bevy_rapier2d::prelude::*;
 #[derive(Debug, Clone, PartialEq)]
 pub enum ElevatorType {
     Loop { period: f32, current: f32 },
-    WeightActivated { weight_to_activate: f32 },
 }
 
 #[derive(Component, Debug, Clone)]
@@ -34,7 +34,7 @@ fn update(
     time: Res<Time>,
     context: Res<RapierContext>,
 ) {
-    for (entity, mut transform, mut elevator) in elevators.iter_mut() {
+    for (_entity, mut transform, mut elevator) in elevators.iter_mut() {
         let mut anything_below = false;
         let mut anything_and_interacts = false;
 
@@ -43,9 +43,8 @@ fn update(
         for i in 0..intervals {
             let origin = transform.translation.truncate()
                 + Vec2::X * Elevator::WIDTH * ((i as f32 / (intervals - 1) as f32) - 0.5);
-            //let query_filter = QueryFilter::new().groups(InteractionGroups::new(ELEVATOR_BIT, ELEVATOR_FILTER));
-
-            let query_filter = QueryFilter::exclude_fixed().exclude_collider(entity);
+            let query_filter =
+                QueryFilter::new().groups(InteractionGroups::new(ELEVATOR_BIT, ELEVATOR_FILTER));
 
             if let Some((_, v)) = context.cast_ray(
                 origin,
@@ -82,11 +81,6 @@ fn update(
                 let p = elevator.start * (1.0 - t) + elevator.end * t;
                 transform.translation.x = p.x;
                 transform.translation.y = p.y;
-            }
-            ElevatorType::WeightActivated {
-                weight_to_activate: _,
-            } => {
-                todo!()
             }
         }
     }

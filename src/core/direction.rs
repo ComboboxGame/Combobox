@@ -2,20 +2,20 @@ use bevy::prelude::*;
 use bevy_rapier2d::plugin::RapierConfiguration;
 
 #[derive(Clone, Debug, Copy)]
-pub enum Direction {
+pub enum MapDirection {
     Down,
     Right,
     Up,
     Left,
 }
 
-impl Direction {
+impl MapDirection {
     pub fn get_vec(&self) -> Vec2 {
         match *self {
-            Direction::Down => Vec2::NEG_Y,
-            Direction::Right => Vec2::X,
-            Direction::Up => Vec2::Y,
-            Direction::Left => Vec2::NEG_X,
+            MapDirection::Down => Vec2::NEG_Y,
+            MapDirection::Right => Vec2::X,
+            MapDirection::Up => Vec2::Y,
+            MapDirection::Left => Vec2::NEG_X,
         }
     }
 
@@ -29,10 +29,10 @@ impl Direction {
 
     pub fn get_index(&self) -> u32 {
         match *self {
-            Direction::Down => 0,
-            Direction::Right => 1,
-            Direction::Up => 2,
-            Direction::Left => 3,
+            MapDirection::Down => 0,
+            MapDirection::Right => 1,
+            MapDirection::Up => 2,
+            MapDirection::Left => 3,
         }
     }
 
@@ -49,16 +49,14 @@ impl Direction {
     pub fn gravity_direction(config: &RapierConfiguration) -> Self {
         let dir = config.gravity.normalize();
         if dir.y > 0.1 {
-            return Direction::Up;
+            return MapDirection::Up;
         }
         if dir.x < -0.1 {
-            return Direction::Left;
+            return MapDirection::Left;
         }
         if dir.x > 0.1 {
-            return Direction::Right;
+            return MapDirection::Right;
         }
-        return Direction::Down;
+        return MapDirection::Down;
     }
-
-    pub fn
 }

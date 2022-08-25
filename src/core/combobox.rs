@@ -4,7 +4,7 @@ use bevy_rapier2d::prelude::*;
 
 use bevy_rapier2d::rapier::prelude::QueryFilterFlags;
 
-use crate::core::gravity::GRAVITY;
+use crate::core::GRAVITY;
 use crate::core::{ComboboxBundle, Material, COMBOBOX_BIT, COMBOBOX_FILTER};
 use crate::game::GameState;
 

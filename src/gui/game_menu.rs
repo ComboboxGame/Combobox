@@ -10,6 +10,7 @@ pub struct GameMenuPlugin;
 #[derive(Debug, Clone, Component)]
 pub enum GameMenuButton {
     Restart,
+    Back,
 }
 
 impl Plugin for GameMenuPlugin {
@@ -30,6 +31,9 @@ fn interaction(
                 GameMenuButton::Restart => {
                     game_state.restart().unwrap();
                 }
+                GameMenuButton::Back => {
+                    game_state.set(GameState::LevelMenu).unwrap();
+                }
             },
             _ => {}
         }
@@ -39,23 +43,43 @@ fn interaction(
 #[derive(Component)]
 pub struct GameMenuNode;
 
-fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
-    //let font = asset_server.load("fonts/roboto.ttf");
-
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn_bundle(NodeBundle {
             style: Style {
-                flex_direction: FlexDirection::Column,
-                margin: UiRect::all(Val::Auto),
-                size: Size::new(Val::Px(400.0), Val::Px(100.0)),
+                flex_direction: FlexDirection::Row,
+                size: Size::new(Val::Percent(100.00), Val::Percent(16.66)),
                 position_type: PositionType::Absolute,
                 ..default()
             },
             color: TRANSPARENT_COLOR,
             ..default()
         })
-        .with_children(|_parent| {
-            //spawn_basic_button(parent, font.clone(), "Restart", GameMenuButton::Restart);
+        .with_children(|parent| {
+            parent
+                .spawn_bundle(ButtonBundle {
+                    style: Style {
+                        size: Size::new(Val::Undefined, Val::Percent(100.0)),
+                        min_size: Size::new(Val::Px(10.0), Val::Px(10.0)),
+                        aspect_ratio: Some(1.0),
+                        ..default()
+                    },
+                    image: asset_server.load("images/buttons/back.png").into(),
+                    ..default()
+                })
+                .insert(GameMenuButton::Back);
+            parent
+                .spawn_bundle(ButtonBundle {
+                    style: Style {
+                        size: Size::new(Val::Undefined, Val::Percent(100.0)),
+                        min_size: Size::new(Val::Px(10.0), Val::Px(10.0)),
+                        aspect_ratio: Some(1.0),
+                        ..default()
+                    },
+                    image: asset_server.load("images/buttons/restart.png").into(),
+                    ..default()
+                })
+                .insert(GameMenuButton::Restart);
         })
         .insert(GameMenuNode);
 }

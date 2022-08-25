@@ -1,14 +1,17 @@
 use bevy::prelude::*;
 
-pub const BASE_BUTTON_COLOR: UiColor =
-    UiColor(Color::rgb(27.0 / 255.0, 135.0 / 255.0, 62.0 / 255.0));
-pub const HOVER_BUTTON_COLOR: UiColor =
-    UiColor(Color::rgb(12.0 / 255.0, 112.0 / 255.0, 59.0 / 255.0));
-pub const CLICKED_BUTTON_COLOR: UiColor =
-    UiColor(Color::rgb(9.0 / 255.0, 186.0 / 255.0, 92.0 / 255.0));
+pub const BASE_ARROW_COLOR: UiColor = UiColor(Color::WHITE);
+pub const HOVER_ARROW_COLOR: UiColor = UiColor(Color::rgb(0.9, 0.9, 0.9));
+pub const CLICKED_ARROW_COLOR: UiColor = UiColor(Color::rgb(0.75, 0.75, 0.75));
 
 #[derive(Debug, Clone)]
 pub struct ButtonsPlugin;
+
+#[derive(Component)]
+pub struct MenuButton;
+
+#[derive(Component)]
+pub struct MenuArrow;
 
 impl Plugin for ButtonsPlugin {
     fn build(&self, app: &mut App) {
@@ -17,21 +20,24 @@ impl Plugin for ButtonsPlugin {
 }
 
 fn button_interaction(
-    mut interaction_query: Query<
-        (&Interaction, &mut UiColor),
-        (Changed<Interaction>, With<Button>),
-    >,
+    mut buttons: Query<(&Interaction, &mut UiColor), (Changed<Interaction>, With<Button>)>,
+    mut windows: ResMut<Windows>,
 ) {
-    for (interaction, mut color) in &mut interaction_query {
+    let window = windows.get_primary_mut().unwrap();
+
+    for (interaction, mut color) in &mut buttons {
         match *interaction {
             Interaction::Clicked => {
-                *color = CLICKED_BUTTON_COLOR.into();
+                *color = CLICKED_ARROW_COLOR.into();
+                window.set_cursor_icon(CursorIcon::Hand);
             }
             Interaction::Hovered => {
-                *color = HOVER_BUTTON_COLOR.into();
+                *color = HOVER_ARROW_COLOR.into();
+                window.set_cursor_icon(CursorIcon::Hand);
             }
             Interaction::None => {
-                *color = BASE_BUTTON_COLOR.into();
+                *color = BASE_ARROW_COLOR.into();
+                window.set_cursor_icon(CursorIcon::Default);
             }
         }
     }
@@ -39,31 +45,40 @@ fn button_interaction(
 
 pub fn spawn_basic_button<T: Component>(
     parent: &mut ChildBuilder,
-    font: Handle<Font>,
-    text: &str,
+    image: UiImage,
+    size: f32,
     button_type: T,
 ) {
     parent
         .spawn_bundle(ButtonBundle {
             style: Style {
-                size: Size::new(Val::Percent(100.0), Val::Px(65.0)),
-                margin: UiRect::new(Val::Auto, Val::Auto, Val::Auto, Val::Px(10.0)),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
+                size: Size::new(Val::Percent(size), Val::Undefined),
+                margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.0), Val::Px(0.0)),
+                aspect_ratio: Some(2.6 / 8.0),
+                min_size: Size::new(Val::Px(10.0), Val::Px(10.0)),
                 ..default()
             },
-            color: BASE_BUTTON_COLOR,
+            image,
+            color: BASE_ARROW_COLOR,
             ..default()
         })
-        .with_children(|parent| {
-            parent.spawn_bundle(TextBundle::from_section(
-                text,
-                TextStyle {
-                    font,
-                    font_size: 40.0,
-                    color: Color::rgb(0.9, 0.9, 0.9),
-                },
-            ));
+        .insert(MenuButton)
+        .insert(button_type);
+}
+
+pub fn spawn_level_button<T: Component>(parent: &mut ChildBuilder, image: UiImage, button_type: T) {
+    parent
+        .spawn_bundle(ButtonBundle {
+            style: Style {
+                size: Size::new(Val::Undefined, Val::Percent(100.0)),
+                aspect_ratio: Some(1.0),
+                min_size: Size::new(Val::Px(50.0), Val::Px(50.0)),
+                ..default()
+            },
+            image,
+            color: BASE_ARROW_COLOR,
+            ..default()
         })
+        .insert(MenuButton)
         .insert(button_type);
 }

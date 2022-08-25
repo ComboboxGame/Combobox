@@ -5,7 +5,8 @@ use bevy_rapier2d::dynamics::{CoefficientCombineRule, Velocity};
 use bevy_rapier2d::prelude::*;
 
 use crate::core::{
-    material_from_texture_and_emissive, Material, Player, PLAYER_BIT, PLAYER_FILTER,
+    material_from_texture_and_emissive, Material, Player, PlayerIndex, PlayerType, PLAYER_BIT,
+    PLAYER_FILTER,
 };
 
 fn create_quad(half_size: Vec2, state: u32, num_states: u32, rotation: u32) -> Mesh {
@@ -86,14 +87,15 @@ pub struct PlayerBundle {
 
 impl PlayerBundle {
     pub fn new(
-        id: u32,
+        index: PlayerIndex,
+        player_type: PlayerType,
         meshes: &mut Assets<Mesh>,
         materials: &mut Assets<Material>,
         asset_server: &AssetServer,
     ) -> Self {
         let mut player_states = PlayerRectState::default();
         let material = materials.add(material_from_texture_and_emissive(
-            asset_server.load("images/robot-states.png"),
+            asset_server.load(player_type.get_states_image().as_str()),
             asset_server.load("images/robot-states-emissive.png"),
         ));
 
@@ -112,7 +114,7 @@ impl PlayerBundle {
         player_states.current_state = 2;
 
         PlayerBundle {
-            player: Player { id, ..default() },
+            player: Player { index, ..default() },
             collider: player_states.get_current_bundle().0,
             mesh: player_states.get_current_bundle().1,
             player_states,

@@ -3,27 +3,26 @@ use bevy::prelude::*;
 use bevy_rapier2d::plugin::RapierConfiguration;
 
 use crate::core::{
-    FinishPoint, MapBoundaries, MapBuilder, Material, Player, PlayerBundle, SpawnPoint, GRAVITY,
+    FinishPoint, MapBoundaries, MapBuilder, Material, Player, PlayerBundle, PlayerType,
+    PlayersSettings, SpawnPoint, GRAVITY,
 };
 
 use crate::game::GameState;
-use crate::levels::level0::setup_level0;
 use crate::levels::level1::setup_level1;
+use crate::levels::level2::setup_level2;
 
-mod level0;
 mod level1;
+mod level2;
 
 pub struct LevelsPlugin;
 
-pub enum Levels {
-    NoLevel,
-    Level0,
-    Level1,
+pub struct CurrentLevel {
+    pub level: usize,
 }
 
 impl Plugin for LevelsPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(Levels::Level1); // todo: should be no level by default
+        app.insert_resource(CurrentLevel { level: 0 });
         app.add_system_set(SystemSet::on_enter(GameState::Game).with_system(setup));
         app.add_system_set(SystemSet::on_exit(GameState::Game).with_system(cleanup));
         app.add_system_set(
@@ -100,18 +99,34 @@ fn spawn_players(
     asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<Material>>,
+    players_settings: Res<PlayersSettings>,
 ) {
+    let num_of_players = players_settings
+        .player_type
+        .iter()
+        .filter(|v| **v != PlayerType::None)
+        .count();
+
     for (entity, spawn_point) in spawn_points.iter() {
+        if spawn_point.index.get_number_of_players() != num_of_players {
+            continue;
+        }
+
         let mut player_exists = false;
         for player in players.iter() {
-            if player.id == spawn_point.id {
+            if player.index == spawn_point.index {
                 player_exists = true;
             }
         }
 
         if !player_exists {
-            let player_bundle =
-                PlayerBundle::new(spawn_point.id, &mut *meshes, &mut *materials, &asset_server);
+            let player_bundle = PlayerBundle::new(
+                spawn_point.index,
+                players_settings.player_type[spawn_point.index.unwrap_index()],
+                &mut *meshes,
+                &mut *materials,
+                &asset_server,
+            );
             let player_id = commands.spawn_bundle(player_bundle).id();
             commands.entity(entity).add_child(player_id);
         }
@@ -119,7 +134,7 @@ fn spawn_players(
 }
 
 fn setup(
-    level: Res<Levels>,
+    current_level: Res<CurrentLevel>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<Material>>,
@@ -128,7 +143,11 @@ fn setup(
     mut assets: ResMut<AssetServer>,
     mut config: ResMut<RapierConfiguration>,
 ) {
+    // Set map defaults
     config.gravity = Vec2::NEG_Y * GRAVITY;
+    *boundaries = MapBoundaries::default();
+    *clear_color = ClearColor(Color::BLACK);
+
     commands
         .spawn()
         .insert(LevelRoot)
@@ -143,14 +162,11 @@ fn setup(
                 &mut *boundaries,
                 &mut *assets,
             );
-            match *level {
-                Levels::NoLevel => {}
-                Levels::Level0 => {
-                    setup_level0(&mut builder);
-                }
-                Levels::Level1 => {
-                    setup_level1(&mut builder);
-                }
+            if current_level.level == 1 {
+                setup_level1(&mut builder);
+            }
+            if current_level.level == 2 {
+                setup_level2(&mut builder);
             }
         });
 }

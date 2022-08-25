@@ -52,5 +52,9 @@ fn fragment(in: FragmentInput) -> @location(0) vec4<f32> {
 #endif
     }
 
+    if (output_color.a < 0.01) {
+        output_color = vec4(output_color.rgb, 0.0);
+    }
+
     return output_color;
 }

@@ -5,6 +5,7 @@ use bevy::sprite::Rect;
 #[derive(Default, Debug, Clone)]
 pub struct MapBoundaries {
     pub rect: Option<Rect>,
+    pub view_range: Option<f32>,
 }
 
 impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
@@ -15,5 +16,9 @@ impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
             min: Vec2::new(left, bottom),
             max: Vec2::new(right, top),
         });
+    }
+
+    pub fn set_min_view_range(&mut self, range: f32) {
+        self.boundaries.view_range = Some(range);
     }
 }

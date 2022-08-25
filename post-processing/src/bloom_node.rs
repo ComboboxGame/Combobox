@@ -1,7 +1,3 @@
-use std::num::NonZeroU32;
-
-
-
 use bevy::prelude::*;
 use bevy::render::camera::ExtractedCamera;
 use bevy::render::mesh::PrimitiveTopology;
@@ -10,7 +6,7 @@ use bevy::render::render_phase::{TrackedRenderPass};
 use bevy::render::render_resource::{
     BindGroupLayout, BindGroupLayoutEntry, BindingType, BlendState, BufferBindingType, BufferVec, CachedRenderPipelineId, ColorTargetState, ColorWrites,
     FragmentState, FrontFace, MultisampleState, PipelineCache, PolygonMode, PrimitiveState,
-    RenderPipelineDescriptor, Sampler, SamplerBindingType, ShaderStages, Texture, TextureDimension,
+    RenderPipelineDescriptor, Sampler, SamplerBindingType, ShaderStages, TextureDimension,
     TextureFormat, TextureSampleType, TextureUsages, TextureView, TextureViewDimension,
     UniformBuffer, VertexBufferLayout, VertexFormat, VertexState, VertexStepMode,
 };
@@ -19,7 +15,7 @@ use bevy::render::texture::{CachedTexture, TextureCache};
 use bevy::render::view::{ExtractedView};
 use bevy::utils::HashMap;
 use wgpu::{
-    BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindingResource, Extent3d, Operations, RenderPassColorAttachment, RenderPassDescriptor, TextureDescriptor, TextureViewDescriptor,
+    BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindingResource, Extent3d, Operations, RenderPassColorAttachment, RenderPassDescriptor, TextureDescriptor,
 };
 use crate::CUSTOM_DOWNSCALING;
 use crate::CUSTOM_UPSCALING;
