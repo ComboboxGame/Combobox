@@ -2,6 +2,7 @@
 // todo: do warn(dead_code) sometimes, too noisy during development
 
 use bevy::{asset::AssetServerSettings, prelude::*};
+use bevy_kira_audio::AudioPlugin;
 
 use crate::game::GamePlugin;
 #[cfg(debug_assertions)]
@@ -24,6 +25,8 @@ fn main() {
 
     // Default bevy plugins
     app.add_plugins(DefaultPlugins);
+
+    app.add_plugin(AudioPlugin);
 
     // Custom hdr rendering plugin with post processing (bloom + tone mapping)
     #[cfg(not(debug_assertions))]

@@ -8,6 +8,8 @@ pub use player::*;
 pub use spawn_point::*;
 pub use wall::*;
 
+use super::BackgroundMusic;
+
 mod boundaries;
 mod combobox;
 mod elevator;
@@ -22,8 +24,8 @@ pub struct MapBuilder<'w, 's, 'a, 'b> {
     assets: &'b mut AssetServer,
     clear_color: &'b mut ClearColor,
     boundaries: &'b mut MapBoundaries,
-
     wall_material: Handle<Material>,
+    background_music: ResMut<'b, BackgroundMusic>,
 }
 
 impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
@@ -34,8 +36,10 @@ impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
         clear_color: &'b mut ClearColor,
         boundaries: &'b mut MapBoundaries,
         assets: &'b mut AssetServer,
+        background_music: ResMut<'b, BackgroundMusic>,
     ) -> MapBuilder<'w, 's, 'a, 'b> {
         let wall_material = materials.add(Color::rgb(0.1, 0.1, 0.1).into());
+        // todo music: background_music.0 = None;
 
         MapBuilder {
             builder,
@@ -45,10 +49,15 @@ impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
             clear_color,
             boundaries,
             assets,
+            background_music,
         }
     }
 
     pub fn set_background_color(&mut self, color: Color) {
         self.clear_color.0 = color;
+    }
+
+    pub fn set_audio(&mut self, name: &str) {
+        self.background_music.0 = Some(name.to_string());
     }
 }

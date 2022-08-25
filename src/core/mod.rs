@@ -8,6 +8,7 @@ mod elevator;
 mod input;
 mod map_builder;
 mod material;
+mod music;
 mod player;
 
 pub use camera::*;
@@ -17,7 +18,10 @@ pub use elevator::*;
 pub use input::*;
 pub use map_builder::*;
 pub use material::*;
+pub use music::*;
 pub use player::*;
+
+use self::music::MusicPlugin;
 
 pub struct CorePlugin;
 
@@ -51,6 +55,7 @@ impl Plugin for CorePlugin {
         app.add_plugin(PlayerPlugin);
         app.add_plugin(ComboboxPlugin);
         app.add_plugin(ElevatorPlugin);
+        app.add_plugin(MusicPlugin);
 
         app.add_system_to_stage(CoreStage::PreUpdate, clean_impulse);
         app.add_system(move_finish_arrow);
@@ -65,6 +70,9 @@ fn clean_impulse(mut impulses: Query<&mut ExternalImpulse>) {
 
 fn move_finish_arrow(mut query: Query<&mut Transform, With<FinishPointArrow>>, time: Res<Time>) {
     for mut arrow in query.iter_mut() {
-        arrow.translation.y = ((((time.seconds_since_startup() as f32 * 4.0).sin() + 1.0) * 0.5).powf(1.2) * 2.0 - 1.0) * 15.0;
+        arrow.translation.y =
+            ((((time.seconds_since_startup() as f32 * 4.0).sin() + 1.0) * 0.5).powf(1.2) * 2.0
+                - 1.0)
+                * 15.0;
     }
 }

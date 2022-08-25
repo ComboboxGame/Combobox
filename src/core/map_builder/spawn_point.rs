@@ -44,16 +44,20 @@ impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
                     .add(self.assets.load("images/finish.png").into()),
                 transform: Transform::from_xyz(position.x, position.y, -1.0),
                 ..default()
-            }).with_children(|parent| {
-            parent.spawn()
-                .insert(FinishPointArrow)
-                .insert_bundle(MaterialMesh2dBundle {
-                    mesh: Mesh2dHandle(self.meshes.add(Quad::new(Vec2::new(50.0, 50.0)).into())),
-                    material: self
-                        .materials
-                        .add(self.assets.load("images/finish-arrow.png").into()),
-                    ..default()
-                });
-        });
+            })
+            .with_children(|parent| {
+                parent
+                    .spawn()
+                    .insert(FinishPointArrow)
+                    .insert_bundle(MaterialMesh2dBundle {
+                        mesh: Mesh2dHandle(
+                            self.meshes.add(Quad::new(Vec2::new(50.0, 50.0)).into()),
+                        ),
+                        material: self
+                            .materials
+                            .add(self.assets.load("images/finish-arrow.png").into()),
+                        ..default()
+                    });
+            });
     }
 }

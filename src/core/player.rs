@@ -101,6 +101,7 @@ pub struct Player {
     pub max_speed: f32,
     pub max_acceleration: f32,
     pub jump_impulse: f32,
+    pub is_moving: bool,
     pub index: PlayerIndex,
 }
 
@@ -135,6 +136,7 @@ impl Default for Player {
             max_speed: 200.,
             max_acceleration: 1850.0,
             jump_impulse: 600.,
+            is_moving: false,
             index: PlayerIndex::SinglePlayer,
         }
     }
@@ -146,7 +148,7 @@ impl Player {
             &mut ExternalImpulse,
             &Velocity,
             &ReadMassProperties,
-            &Player,
+            &mut Player,
         )>,
         keys: Res<Input<KeyCode>>,
         time: Res<Time>,
@@ -154,18 +156,23 @@ impl Player {
     ) {
         let gravity_direction = MapDirection::gravity_direction(&*config);
 
-        for (mut impulse, velocity, mass, player) in players.iter_mut() {
+        for (mut impulse, velocity, mass, mut player) in players.iter_mut() {
             let mut target_velocity = 0.0;
+
+            let mut moving = false;
 
             if keys.any_pressed(player.get_buttons_left(gravity_direction)) {
                 target_velocity -= player.max_speed;
+                moving = true;
             }
 
             if keys.any_pressed(player.get_buttons_right(gravity_direction)) {
                 target_velocity += player.max_speed;
+                moving = true;
             }
 
             let right = gravity_direction.get_perp().get_vec();
+            player.is_moving = moving;
 
             let delta_velocity = target_velocity - velocity.linvel.dot(right);
             let k = ((delta_velocity.abs() - player.max_speed * 1.0).max(0.0) / player.max_speed)
@@ -173,6 +180,7 @@ impl Player {
             let dv = delta_velocity
                 .abs()
                 .min(player.max_acceleration * time.delta_seconds() * (1.0 + k));
+
             impulse.impulse += right * delta_velocity.signum() * dv * mass.0.mass;
         }
     }

@@ -1,10 +1,11 @@
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
+use bevy_kira_audio::{Audio, AudioControl};
 use bevy_rapier2d::plugin::RapierConfiguration;
 
 use crate::core::{
-    FinishPoint, MapBoundaries, MapBuilder, Material, Player, PlayerBundle, PlayerType,
-    PlayersSettings, SpawnPoint, GRAVITY,
+    BackgroundMusic, FinishPoint, MapBoundaries, MapBuilder, Material, Player, PlayerBundle,
+    PlayerType, PlayersSettings, SpawnPoint, GRAVITY,
 };
 
 use crate::game::GameState;
@@ -66,6 +67,8 @@ fn finish_level(
     mut game_state: ResMut<State<GameState>>,
     mut timer: Local<f32>,
     time: Res<Time>,
+    audio: Res<Audio>,
+    assets: Res<AssetServer>,
 ) {
     let mut any_player_unfinished = false;
 
@@ -85,6 +88,7 @@ fn finish_level(
         *timer += time.delta_seconds();
         if *timer > 1.0 {
             *timer = 0.0;
+            audio.play(assets.load("audio/finish.ogg"));
             game_state.set(GameState::LevelMenu).unwrap();
         }
     } else {
@@ -142,6 +146,7 @@ fn setup(
     mut boundaries: ResMut<MapBoundaries>,
     mut assets: ResMut<AssetServer>,
     mut config: ResMut<RapierConfiguration>,
+    background_music: ResMut<BackgroundMusic>,
 ) {
     // Set map defaults
     config.gravity = Vec2::NEG_Y * GRAVITY;
@@ -161,6 +166,7 @@ fn setup(
                 &mut *clear_color,
                 &mut *boundaries,
                 &mut *assets,
+                background_music,
             );
             if current_level.level == 1 {
                 setup_level1(&mut builder);
@@ -173,9 +179,12 @@ fn setup(
 
 fn cleanup(
     mut commands: Commands,
+    //  todo music: mut background_music: ResMut<BackgroundMusic>,
     roots: Query<Entity, With<LevelRoot>>,
     mut clear_color: ResMut<ClearColor>,
 ) {
+    // todo music: background_music.0 = Some("audio/main_menu_background.ogg".to_string());
+
     for root in roots.iter() {
         commands.entity(root).despawn_recursive();
     }

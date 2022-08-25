@@ -1,10 +1,9 @@
 use bevy::prelude::*;
 
-
 use bevy::render::RenderApp;
 use std::env;
 
-use crate::core::{CorePlugin};
+use crate::core::CorePlugin;
 use crate::gui::GuiPlugin;
 use crate::levels::LevelsPlugin;
 
