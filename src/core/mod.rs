@@ -7,6 +7,7 @@ mod gravity;
 mod map;
 mod material;
 mod player;
+mod music;
 
 pub use combobox::*;
 pub use elevator::*;
@@ -14,6 +15,9 @@ pub use gravity::*;
 pub use map::*;
 pub use material::*;
 pub use player::*;
+pub use music::*;
+
+use self::music::MusicPlugin;
 
 pub struct CorePlugin;
 
@@ -44,6 +48,7 @@ impl Plugin for CorePlugin {
         app.add_plugin(PlayerPlugin);
         app.add_plugin(ComboboxPlugin);
         app.add_plugin(ElevatorPlugin);
+        app.add_plugin(MusicPlugin);
 
         app.add_system_to_stage(CoreStage::PreUpdate, clean_impulse);
     }

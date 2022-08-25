@@ -3,6 +3,7 @@ use bevy::prelude::*;
 
 pub fn setup_level0(builder: &mut MapBuilder) {
     builder.set_background_color(Color::rgb(0.06, 0.06, 0.06));
+    builder.set_audio("audio/level1_background.ogg");
 
     builder.spawn_wall_from_to(Vec2::new(-1500.0, -1500.0), Vec2::new(1000.0, 0.0));
 

@@ -1,5 +1,6 @@
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
+use bevy_kira_audio::{Audio, AudioControl};
 use bevy_rapier2d::prelude::*;
 
 use bevy_rapier2d::rapier::prelude::QueryFilterFlags;
@@ -367,6 +368,7 @@ fn merge(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<Material>>,
     mut assets: ResMut<AssetServer>,
+    audio: Res<Audio>
 ) {
     'outer: for (i, (a, parent, combobox_a, transform_a, state_a)) in comboboxes.iter().enumerate()
     {
@@ -397,6 +399,8 @@ fn merge(
                             ))
                             .id();
                         commands.entity(parent.get()).add_child(id);
+                        
+                        audio.play(assets.load("audio/box_join.ogg"));
                     }
                     commands
                         .entity(a)

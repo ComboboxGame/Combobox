@@ -1,11 +1,7 @@
 use crate::core::{MapBoundaries, PlayerRectState};
-
 use crate::core::gravity::GravityDirection;
-
 use bevy::render::camera::RenderTarget;
-
 use bevy::{math::Vec3Swizzles, prelude::*};
-
 use bevy_rapier2d::prelude::{
     Collider, ExternalImpulse, QueryFilter, RapierConfiguration, RapierContext, ReadMassProperties,
     Velocity,
@@ -20,6 +16,7 @@ pub struct Player {
     pub max_speed: f32,
     pub max_acceleration: f32,
     pub jump_impulse: f32,
+    pub is_moving: bool,
     pub id: u32,
 }
 
@@ -31,6 +28,7 @@ impl Default for Player {
             max_speed: 200.,
             max_acceleration: 1850.0,
             jump_impulse: 600.,
+            is_moving: false,
             id: 0,
         }
     }
@@ -42,20 +40,22 @@ impl Player {
             &mut ExternalImpulse,
             &Velocity,
             &ReadMassProperties,
-            &Player,
+            &mut Player,
         )>,
         keys: Res<Input<KeyCode>>,
         time: Res<Time>,
         config: ResMut<RapierConfiguration>,
     ) {
-        for (mut impulse, velocity, mass, player) in players.iter_mut() {
+        for (mut impulse, velocity, mass, mut player) in players.iter_mut() {
             let mut target_velocity = 0.0;
 
+            let mut moving = false;
             if ((keys.pressed(KeyCode::A) || keys.pressed(KeyCode::Left)) && config.gravity.y != 0.)
                 || ((keys.pressed(KeyCode::S) || keys.pressed(KeyCode::Down))
                     && config.gravity.x != 0.)
             {
                 target_velocity -= player.max_speed;
+                moving = true;
             }
             if ((keys.pressed(KeyCode::D) || keys.pressed(KeyCode::Right))
                 && config.gravity.y != 0.)
@@ -63,7 +63,10 @@ impl Player {
                     && config.gravity.x != 0.)
             {
                 target_velocity += player.max_speed;
+                moving = true;
             }
+
+            player.is_moving = moving;
 
             let right = (Quat::from_rotation_arc_2d(Vec2::NEG_Y, Vec2::X)
                 * config.gravity.abs().normalize().extend(0.0))
@@ -76,6 +79,7 @@ impl Player {
             let dv = delta_velocity
                 .abs()
                 .min(player.max_acceleration * time.delta_seconds() * (1.0 + k));
+
             impulse.impulse += right * delta_velocity.signum() * dv * mass.0.mass;
         }
     }
