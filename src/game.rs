@@ -23,8 +23,10 @@ pub struct GamePlugin;
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         if env::var("LOCAL_BUILD") == Ok("1".to_string()) {
+            app.insert_resource(Msaa { samples: 4 });
             app.add_state(GameState::MainMenu);
         } else {
+            app.insert_resource(Msaa { samples: 1 });
             app.add_state(GameState::MainMenu);
         }
         app.add_startup_system(setup_camera);
@@ -32,8 +34,6 @@ impl Plugin for GamePlugin {
         app.add_plugin(CorePlugin);
         app.add_plugin(GuiPlugin);
 
-        // Disable msaa todo: enable by default
-        app.insert_resource(Msaa { samples: 4 });
         let render_app = match app.get_sub_app_mut(RenderApp) {
             Ok(render_app) => render_app,
             Err(_) => return,
