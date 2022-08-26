@@ -4,7 +4,7 @@
 use bevy::{asset::AssetServerSettings, prelude::*};
 use bevy_kira_audio::AudioPlugin;
 
-use crate::game::GamePlugin;
+use crate::game::ComboboxGamePlugin;
 #[cfg(debug_assertions)]
 use crate::utils::FpsPlugin;
 
@@ -12,6 +12,7 @@ mod core;
 mod game;
 mod gui;
 mod levels;
+mod states;
 mod utils;
 
 fn main() {
@@ -37,7 +38,7 @@ fn main() {
     app.add_plugin(FpsPlugin);
 
     // Our incredible game plugin
-    app.add_plugin(GamePlugin);
+    app.add_plugin(ComboboxGamePlugin);
 
     app.run();
 }

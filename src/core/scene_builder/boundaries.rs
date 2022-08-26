@@ -1,14 +1,14 @@
-use crate::core::MapBuilder;
+use crate::core::SceneBuilder;
 use bevy::prelude::*;
 use bevy::sprite::Rect;
 
 #[derive(Default, Debug, Clone)]
-pub struct MapBoundaries {
+pub struct SceneBoundaries {
     pub rect: Option<Rect>,
     pub view_range: Option<f32>,
 }
 
-impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
+impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
     pub fn set_boundaries(&mut self, left: f32, right: f32, bottom: f32, top: f32) {
         assert!(left <= right);
         assert!(bottom <= top);

@@ -11,7 +11,7 @@ use bevy::render::{
 use bevy::sprite::{
     Material2d, Material2dKey, Material2dPlugin,
 };
-use crate::CUSTOM_MATERIAL;
+use crate::{CUSTOM_MATERIAL, PointLightsUniform};
 
 #[derive(Default)]
 pub struct ColorMaterialCustomPlugin;
@@ -38,6 +38,7 @@ impl Plugin for ColorMaterialCustomPlugin {
 #[uniform(0, ColorMaterialCustomUniform)]
 pub struct ColorMaterialCustom {
     pub color: Color,
+    pub lights: PointLightsUniform,
     #[texture(1)]
     #[sampler(2)]
     pub texture: Option<Handle<Image>>,
@@ -51,6 +52,7 @@ impl Default for ColorMaterialCustom {
     fn default() -> Self {
         ColorMaterialCustom {
             color: Color::WHITE,
+            lights: PointLightsUniform::default(),
             texture: None,
             emissive: None,
         }
@@ -90,6 +92,7 @@ impl From<(Handle<Image>, Handle<Image>)> for ColorMaterialCustom {
 pub struct ColorMaterialCustomUniform {
     pub color: Vec4,
     pub flags: u32,
+    pub lights: PointLightsUniform,
 }
 
 // NOTE: These must match the bit flags in bevy_sprite/src/mesh2d/color_material.wgsl!
@@ -119,6 +122,7 @@ impl AsBindGroupShaderType<ColorMaterialCustomUniform> for ColorMaterialCustom {
         ColorMaterialCustomUniform {
             color: self.color.as_linear_rgba_f32().into(),
             flags: flags.bits(),
+            lights: self.lights.clone(),
         }
     }
 }

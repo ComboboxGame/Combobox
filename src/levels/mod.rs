@@ -4,30 +4,30 @@ use bevy_kira_audio::{Audio, AudioControl};
 use bevy_rapier2d::plugin::RapierConfiguration;
 
 use crate::core::{
-    BackgroundMusic, FinishPoint, MapBoundaries, MapBuilder, Material, Player, PlayerBundle,
-    PlayerType, PlayersSettings, SpawnPoint, GRAVITY,
+    BackgroundMusic, FinishPoint, Material, Player, PlayerBundle, PlayerType, PlayersSettings,
+    SceneBoundaries, SceneBuilder, SpawnPoint, GRAVITY_FORCE,
 };
 
-use crate::game::GameState;
 use crate::levels::level1::setup_level1;
 use crate::levels::level2::setup_level2;
+use crate::states::{AudioState, CameraState, GuiState, LevelState};
 
 mod level1;
 mod level2;
 
-pub struct LevelsPlugin;
+pub struct LevelPlugin;
 
 pub struct CurrentLevel {
     pub level: usize,
 }
 
-impl Plugin for LevelsPlugin {
+impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(CurrentLevel { level: 0 });
-        app.add_system_set(SystemSet::on_enter(GameState::Game).with_system(setup));
-        app.add_system_set(SystemSet::on_exit(GameState::Game).with_system(cleanup));
+        app.add_system_set(SystemSet::on_enter(LevelState::Level).with_system(setup));
+        app.add_system_set(SystemSet::on_exit(LevelState::Level).with_system(cleanup));
         app.add_system_set(
-            SystemSet::on_update(GameState::Game)
+            SystemSet::on_update(LevelState::Level)
                 .with_system(spawn_players)
                 .with_system(restart_on_out_of_boundaries)
                 .with_system(finish_level),
@@ -40,8 +40,8 @@ pub struct LevelRoot;
 
 fn restart_on_out_of_boundaries(
     players: Query<&GlobalTransform, With<Player>>,
-    boundaries: Res<MapBoundaries>,
-    mut game_state: ResMut<State<GameState>>,
+    boundaries: Res<SceneBoundaries>,
+    mut level_state: ResMut<State<LevelState>>,
 ) {
     if !players.is_empty()
         && players.iter().all(|t| {
@@ -57,14 +57,17 @@ fn restart_on_out_of_boundaries(
             }
         })
     {
-        game_state.restart().unwrap();
+        level_state.restart().unwrap();
     }
 }
 
 fn finish_level(
     finish_points: Query<&GlobalTransform, With<FinishPoint>>,
     players: Query<&GlobalTransform, With<Player>>,
-    mut game_state: ResMut<State<GameState>>,
+    mut level_state: ResMut<State<LevelState>>,
+    mut gui_state: ResMut<State<GuiState>>,
+    mut camera_state: ResMut<State<CameraState>>,
+    mut audio_state: ResMut<State<AudioState>>,
     mut timer: Local<f32>,
     time: Res<Time>,
     audio: Res<Audio>,
@@ -75,7 +78,7 @@ fn finish_level(
     for player in players.iter() {
         let mut finished = false;
         for finish in finish_points.iter() {
-            if (player.translation().xy() - finish.translation().xy()).length() < 80.0 {
+            if (player.translation().xy() - finish.translation().xy()).length() < 120.0 {
                 finished = true;
             }
         }
@@ -89,7 +92,10 @@ fn finish_level(
         if *timer > 1.0 {
             *timer = 0.0;
             audio.play(assets.load("audio/finish.ogg"));
-            game_state.set(GameState::LevelMenu).unwrap();
+            level_state.set(LevelState::None).unwrap();
+            gui_state.set(GuiState::LevelSelection).unwrap();
+            camera_state.set(CameraState::None).unwrap();
+            audio_state.set(AudioState::None).unwrap();
         }
     } else {
         *timer = 0.0;
@@ -142,16 +148,14 @@ fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<Material>>,
-    mut clear_color: ResMut<ClearColor>,
-    mut boundaries: ResMut<MapBoundaries>,
+    mut boundaries: ResMut<SceneBoundaries>,
     mut assets: ResMut<AssetServer>,
     mut config: ResMut<RapierConfiguration>,
     background_music: ResMut<BackgroundMusic>,
 ) {
     // Set map defaults
-    config.gravity = Vec2::NEG_Y * GRAVITY;
-    *boundaries = MapBoundaries::default();
-    *clear_color = ClearColor(Color::BLACK);
+    config.gravity = Vec2::NEG_Y * GRAVITY_FORCE;
+    *boundaries = SceneBoundaries::default();
 
     commands
         .spawn()
@@ -159,11 +163,10 @@ fn setup(
         .insert_bundle(VisibilityBundle::default())
         .insert_bundle(TransformBundle::default())
         .with_children(|parent| {
-            let mut builder = MapBuilder::new(
+            let mut builder = SceneBuilder::new(
                 parent,
                 &mut *meshes,
                 &mut *materials,
-                &mut *clear_color,
                 &mut *boundaries,
                 &mut *assets,
                 background_music,

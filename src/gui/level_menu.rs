@@ -1,44 +1,51 @@
 use bevy::prelude::*;
 
-use crate::game::GameState;
 use crate::gui::buttons::spawn_level_button;
 use crate::gui::TRANSPARENT_COLOR;
 use crate::levels::CurrentLevel;
+use crate::states::{AudioState, CameraState, GuiState, LevelState};
 
 #[derive(Debug, Clone)]
-pub struct LevelMenuPlugin;
+pub struct LevelSelectionGUIPlugin;
 
 #[derive(Debug, Clone, Component)]
-pub enum LevelMenuButton {
+pub enum LevelSelectionButton {
     Level(usize),
     Back,
 }
 
-impl Plugin for LevelMenuPlugin {
+impl Plugin for LevelSelectionGUIPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(GameState::LevelMenu).with_system(setup));
-        app.add_system_set(SystemSet::on_update(GameState::LevelMenu).with_system(interaction));
-        app.add_system_set(SystemSet::on_exit(GameState::LevelMenu).with_system(cleanup));
+        app.add_system_set(SystemSet::on_enter(GuiState::LevelSelection).with_system(setup));
+        app.add_system_set(SystemSet::on_update(GuiState::LevelSelection).with_system(interaction));
+        app.add_system_set(SystemSet::on_exit(GuiState::LevelSelection).with_system(cleanup));
     }
 }
 
 fn interaction(
     interaction_query: Query<
-        (&Interaction, &LevelMenuButton),
+        (&Interaction, &LevelSelectionButton),
         (Changed<Interaction>, With<Button>),
     >,
-    mut game_state: ResMut<State<GameState>>,
+    mut level_state: ResMut<State<LevelState>>,
+    mut gui_state: ResMut<State<GuiState>>,
+    mut audio_state: ResMut<State<AudioState>>,
+    mut camera_state: ResMut<State<CameraState>>,
     mut current_level: ResMut<CurrentLevel>,
 ) {
     for (interaction, button) in interaction_query.iter() {
         match *interaction {
             Interaction::Clicked => match button {
-                LevelMenuButton::Level(level) => {
+                LevelSelectionButton::Level(level) => {
                     current_level.level = *level;
-                    game_state.set(GameState::Game).unwrap();
+
+                    level_state.set(LevelState::Level).unwrap();
+                    audio_state.set(AudioState::Level).unwrap();
+                    gui_state.set(GuiState::Level).unwrap();
+                    camera_state.set(CameraState::FollowPlayers).unwrap();
                 }
-                LevelMenuButton::Back => {
-                    game_state.set(GameState::MainMenu).unwrap();
+                LevelSelectionButton::Back => {
+                    gui_state.set(GuiState::MainScreen).unwrap();
                 }
             },
             _ => {}
@@ -79,7 +86,7 @@ fn setup(
                     image: asset_server.load("images/buttons/levels/back.png").into(),
                     ..default()
                 })
-                .insert(LevelMenuButton::Back);
+                .insert(LevelSelectionButton::Back);
         })
         .insert(LevelMenuNode);
 
@@ -149,7 +156,11 @@ fn setup(
                             let image = asset_server.load(
                                 format!("images/buttons/levels/level-{}.png", level).as_str(),
                             );
-                            spawn_level_button(parent, image.into(), LevelMenuButton::Level(level));
+                            spawn_level_button(
+                                parent,
+                                image.into(),
+                                LevelSelectionButton::Level(level),
+                            );
                         }
                     });
             }

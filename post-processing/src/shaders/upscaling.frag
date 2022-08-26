@@ -32,8 +32,8 @@ void main() {
     vec4 color = texture(sampler2D(second_texture, default_sampler), uv.xy);
     
     if (step.x == 1) {
-        out_color = vec4(color.rgb * 1.0 + up_sample.rgb * 0.5, 1.0);
+        out_color = vec4(color.rgb * 1.0 + up_sample.rgb * 0.6, 1.0);
     } else {
-        out_color = vec4(color.rgb + up_sample.rgb * 0.6, 1.0);
+        out_color = vec4(color.rgb + up_sample.rgb * 0.3, 1.0);
     }
 }

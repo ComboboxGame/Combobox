@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 use bevy_rapier2d::prelude::*;
 
-use crate::core::{Elevator, ElevatorType, MapBuilder, Material, ELEVATOR_BIT, ELEVATOR_FILTER};
+use crate::core::{collision_groups, Elevator, ElevatorType, Material, SceneBuilder};
 
 #[derive(Bundle)]
 pub struct ElevatorBundle {
@@ -35,12 +35,12 @@ impl ElevatorBundle {
                 transform: Transform::from_xyz(start.x, start.y, -1.0),
                 ..MaterialMesh2dBundle::default()
             },
-            collision_groups: CollisionGroups::new(ELEVATOR_BIT, ELEVATOR_FILTER),
+            collision_groups: collision_groups::ELEVATOR,
         }
     }
 }
 
-impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
+impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
     pub fn spawn_elevator_xy(
         &mut self,
         start_x: f32,

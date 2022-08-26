@@ -1,6 +1,6 @@
-use bevy::app::{App, Plugin};
-use bevy::core_pipeline::core_2d::MainPass2dNode;
+use bevy::app::{App, CoreStage, Plugin};
 use bevy::core_pipeline::core_2d::graph;
+use bevy::core_pipeline::core_2d::MainPass2dNode;
 use bevy::ecs::prelude::*;
 use bevy::prelude::{Assets, HandleUntyped, Msaa, Shader};
 use bevy::reflect::TypeUuid;
@@ -11,17 +11,16 @@ use bevy::render::{
 use bevy::render::camera::ExtractedCamera;
 use bevy::render::render_resource::{Extent3d, Operations, ShaderStage, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages, TextureView, UniformBuffer};
 use bevy::render::renderer::RenderDevice;
-use bevy::render::texture::{TextureCache};
+use bevy::render::texture::TextureCache;
 use bevy::render::view::WindowSystem;
 use bevy::ui::draw_ui_graph;
 use bevy::utils::HashMap;
 pub use color_material_custom::ColorMaterialCustom;
+pub use lights::*;
 use wgpu::{Color, RenderPassColorAttachment};
 
 use crate::bloom_node::*;
 use crate::color_material_custom::*;
-use crate::lights::{extract_point_lights_2d, PointLightsUniform};
-
 use crate::main_pass_2d_node::MainPass2dNodeCustom;
 use crate::tone_mapping_node::*;
 
@@ -31,6 +30,7 @@ mod main_pass_2d_node;
 mod tone_mapping_node;
 mod lights;
 mod utils;
+
 
 pub struct Core2dCustomPlugin;
 
@@ -80,6 +80,13 @@ impl Plugin for Core2dCustomPlugin {
 
         app.add_plugin(ColorMaterialCustomPlugin);
 
+        app.insert_resource(AmbientLight { color: bevy::prelude::Color::WHITE * 30.0 });
+
+        app.add_system_to_stage(
+            CoreStage::Last,
+            update_lights,
+        );
+
         let render_app = match app.get_sub_app_mut(RenderApp) {
             Ok(render_app) => render_app,
             Err(_) => return,
@@ -99,11 +106,6 @@ impl Plugin for Core2dCustomPlugin {
         );
 
         render_app.insert_resource(UniformBuffer::<PointLightsUniform>::default());
-
-        render_app.add_system_to_stage(
-            RenderStage::Extract,
-            extract_point_lights_2d
-        );
 
         let pass_node_2d = MainPass2dNodeCustom::new(&mut render_app.world);
         let bloom_node = BloomNode::new(&mut render_app.world);

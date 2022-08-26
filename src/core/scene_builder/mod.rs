@@ -1,4 +1,6 @@
+use bevy::prelude::shape::Quad;
 use bevy::prelude::*;
+use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 
 use crate::core::Material;
 pub use boundaries::*;
@@ -17,36 +19,32 @@ mod player;
 mod spawn_point;
 mod wall;
 
-pub struct MapBuilder<'w, 's, 'a, 'b> {
+pub struct SceneBuilder<'w, 's, 'a, 'b> {
     builder: &'b mut ChildBuilder<'w, 's, 'a>,
     meshes: &'b mut Assets<Mesh>,
     materials: &'b mut Assets<Material>,
     assets: &'b mut AssetServer,
-    clear_color: &'b mut ClearColor,
-    boundaries: &'b mut MapBoundaries,
+    boundaries: &'b mut SceneBoundaries,
     wall_material: Handle<Material>,
     background_music: ResMut<'b, BackgroundMusic>,
 }
 
-impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
+impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
     pub fn new(
         builder: &'b mut ChildBuilder<'w, 's, 'a>,
         meshes: &'b mut Assets<Mesh>,
         materials: &'b mut Assets<Material>,
-        clear_color: &'b mut ClearColor,
-        boundaries: &'b mut MapBoundaries,
+        boundaries: &'b mut SceneBoundaries,
         assets: &'b mut AssetServer,
         background_music: ResMut<'b, BackgroundMusic>,
-    ) -> MapBuilder<'w, 's, 'a, 'b> {
+    ) -> SceneBuilder<'w, 's, 'a, 'b> {
         let wall_material = materials.add(Color::rgb(0.1, 0.1, 0.1).into());
-        // todo music: background_music.0 = None;
 
-        MapBuilder {
+        SceneBuilder {
             builder,
             meshes,
             materials,
             wall_material,
-            clear_color,
             boundaries,
             assets,
             background_music,
@@ -54,7 +52,12 @@ impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
     }
 
     pub fn set_background_color(&mut self, color: Color) {
-        self.clear_color.0 = color;
+        self.builder.spawn_bundle(MaterialMesh2dBundle {
+            mesh: Mesh2dHandle(self.meshes.add(Quad::new(Vec2::ONE * 10000.0).into())),
+            material: self.materials.add(color.into()),
+            transform: Transform::from_translation(Vec3::new(0.0, 0.0, -100.0)),
+            ..default()
+        });
     }
 
     pub fn set_audio(&mut self, name: &str) {

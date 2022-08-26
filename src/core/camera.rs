@@ -1,16 +1,50 @@
 use bevy::prelude::*;
 use bevy::sprite::Rect;
 
-use crate::core::{MapBoundaries, Player};
-use crate::game::GameState;
+use crate::core::{Player, SceneBoundaries};
+use crate::states::CameraState;
 
 pub struct CameraPlugin;
 
+/// Controls camera zoom and movement during the game.
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(GameState::Game).with_system(update_camera_position),
+            SystemSet::on_update(CameraState::FollowPlayers).with_system(follow_players),
         );
+    }
+}
+
+fn follow_players(
+    mut players: Query<&GlobalTransform, With<Player>>,
+    mut cameras: Query<(&mut Transform, &Camera), (With<Camera2d>, Without<Player>)>,
+    boundaries: Res<SceneBoundaries>,
+) {
+    for player in players.iter_mut() {
+        for (mut transform, camera) in cameras.iter_mut() {
+            if let Some(view_range) = boundaries.view_range {
+                let view_rect = get_view_rect(&camera, &transform);
+                let view_size = (view_rect.max - view_rect.min) * 0.5;
+                let zoom = if view_size.x > view_size.y {
+                    view_range / view_size.y
+                } else {
+                    view_range / view_size.x
+                };
+
+                transform.scale *= zoom.powf(0.05);
+            }
+
+            let mut pos: Vec3 = player.translation() * 0.05 + transform.translation * 0.95;
+
+            // Clamp camera to boundaries
+            if let Some(boundaries) = boundaries.rect {
+                let view_rect = get_view_rect(&camera, &transform);
+                let view_size = (view_rect.max - view_rect.min) * 0.5;
+                pos = clamp_to_rect(pos.truncate(), view_size, boundaries).extend(pos.z);
+            }
+
+            transform.translation = pos;
+        }
     }
 }
 
@@ -39,37 +73,4 @@ fn clamp_to_rect(pos: Vec2, view_half_size: Vec2, rect: Rect) -> Vec2 {
             }
         })
         .into()
-}
-
-fn update_camera_position(
-    mut players: Query<&GlobalTransform, With<Player>>,
-    mut cameras: Query<(&mut Transform, &Camera), (With<Camera2d>, Without<Player>)>,
-    boundaries: Res<MapBoundaries>,
-) {
-    for player in players.iter_mut() {
-        for (mut transform, camera) in cameras.iter_mut() {
-            if let Some(view_range) = boundaries.view_range {
-                let view_rect = get_view_rect(&camera, &transform);
-                let view_size = (view_rect.max - view_rect.min) * 0.5;
-                let zoom = if view_size.x > view_size.y {
-                    view_range / view_size.y
-                } else {
-                    view_range / view_size.x
-                };
-
-                transform.scale *= zoom.powf(0.05);
-            }
-
-            let mut pos: Vec3 = player.translation() * 0.05 + transform.translation * 0.95;
-
-            // Clamp camera to boundaries
-            if let Some(boundaries) = boundaries.rect {
-                let view_rect = get_view_rect(&camera, &transform);
-                let view_size = (view_rect.max - view_rect.min) * 0.5;
-                pos = clamp_to_rect(pos.truncate(), view_size, boundaries).extend(pos.z);
-            }
-
-            transform.translation = pos;
-        }
-    }
 }

@@ -1,4 +1,4 @@
-use crate::core::{MapBuilder, PlayerIndex};
+use crate::core::{PlayerIndex, SceneBuilder};
 use bevy::prelude::shape::Quad;
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
@@ -14,7 +14,7 @@ pub struct FinishPoint;
 #[derive(Debug, Clone, Component)]
 pub struct FinishPointArrow;
 
-impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
+impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
     pub fn set_spawn_point_xy(&mut self, x: f32, y: f32, index: PlayerIndex) {
         self.set_spawn_point(Vec2::new(x, y), index);
     }

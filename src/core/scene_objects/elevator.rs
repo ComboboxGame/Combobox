@@ -1,5 +1,5 @@
-use crate::core::{ELEVATOR_BIT, ELEVATOR_FILTER};
-use crate::game::GameState;
+use crate::core::collision_groups;
+use crate::states::LevelState;
 use bevy::prelude::*;
 use bevy_rapier2d::plugin::RapierContext;
 use bevy_rapier2d::prelude::*;
@@ -25,7 +25,7 @@ pub struct ElevatorPlugin;
 
 impl Plugin for ElevatorPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(GameState::Game).with_system(update));
+        app.add_system_set(SystemSet::on_update(LevelState::Level).with_system(update));
     }
 }
 
@@ -43,8 +43,7 @@ fn update(
         for i in 0..intervals {
             let origin = transform.translation.truncate()
                 + Vec2::X * Elevator::WIDTH * ((i as f32 / (intervals - 1) as f32) - 0.5);
-            let query_filter =
-                QueryFilter::new().groups(InteractionGroups::new(ELEVATOR_BIT, ELEVATOR_FILTER));
+            let query_filter = QueryFilter::new().groups(collision_groups::ELEVATOR_I);
 
             if let Some((_, v)) = context.cast_ray(
                 origin,

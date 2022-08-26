@@ -5,32 +5,27 @@ use std::env;
 
 use crate::core::CorePlugin;
 use crate::gui::GuiPlugin;
-use crate::levels::LevelsPlugin;
-
-#[derive(Clone, PartialEq, Eq, Debug, Hash)]
-pub enum GameState {
-    // Menu states
-    MainMenu,
-    LevelMenu,
-
-    // Game states
-    Game,
-}
+use crate::levels::LevelPlugin;
+use crate::states::{AudioState, CameraState, GuiState, LevelState};
 
 #[derive(Debug, Clone)]
-pub struct GamePlugin;
+pub struct ComboboxGamePlugin;
 
-impl Plugin for GamePlugin {
+impl Plugin for ComboboxGamePlugin {
     fn build(&self, app: &mut App) {
+        app.add_state(GuiState::MainScreen);
+        app.add_state(AudioState::None);
+        app.add_state(LevelState::None);
+        app.add_state(CameraState::None);
+
         if env::var("LOCAL_BUILD") == Ok("1".to_string()) {
             app.insert_resource(Msaa { samples: 4 });
-            app.add_state(GameState::MainMenu);
         } else {
             app.insert_resource(Msaa { samples: 1 });
-            app.add_state(GameState::MainMenu);
         }
+
         app.add_startup_system(setup_camera);
-        app.add_plugin(LevelsPlugin);
+        app.add_plugin(LevelPlugin);
         app.add_plugin(CorePlugin);
         app.add_plugin(GuiPlugin);
 

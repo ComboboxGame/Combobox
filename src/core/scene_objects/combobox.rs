@@ -5,9 +5,9 @@ use bevy_rapier2d::prelude::*;
 
 use bevy_rapier2d::rapier::prelude::QueryFilterFlags;
 
-use crate::core::GRAVITY;
-use crate::core::{ComboboxBundle, Material, COMBOBOX_BIT, COMBOBOX_FILTER};
-use crate::game::GameState;
+use crate::core::{collision_groups, GRAVITY_FORCE};
+use crate::core::{ComboboxBundle, Material};
+use crate::states::LevelState;
 
 #[derive(Clone, Debug)]
 pub enum ComboboxType {
@@ -142,6 +142,31 @@ impl Combobox {
 
                 return Some(vec![(big_box, center)]);
             }
+            (
+                ComboboxType::Lamp { color: color1 },
+                ComboboxType::Lamp { .. },
+            ) => {
+                let mut gravity = None;
+                if let Some(first_gravity) = first.local_gravity {
+                    if let Some(second_gravity) = second.local_gravity {
+                        if first_gravity == second_gravity {
+                            gravity = Some(first_gravity.clone());
+                        }
+                    }
+                }
+
+                let big_box = Combobox {
+                    weight: first.weight + second.weight,
+                    box_type: ComboboxType::Lamp {color: color1.clone()},
+                    combined_from: vec![
+                        (first.clone(), first_offset),
+                        (second.clone(), second_offset),
+                    ],
+                    local_gravity: gravity,
+                };
+
+                return Some(vec![(big_box, center)]);
+            }
             (ComboboxType::Buf, ComboboxType::Standard { .. }) => {
                 let buffed_box = Combobox {
                     weight: second.weight * 2.,
@@ -209,7 +234,7 @@ pub struct ComboboxPlugin;
 impl Plugin for ComboboxPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(GameState::Game)
+            SystemSet::on_update(LevelState::Level)
                 .with_system(merge)
                 .with_system(animation)
                 .with_system(pushback)
@@ -234,9 +259,7 @@ fn animation(
             if *animation_time >= ComboboxState::SPAWN_TIME {
                 new_state = Some(ComboboxState::Normal);
                 commands.entity(entity).insert(RigidBody::Dynamic);
-                commands
-                    .entity(entity)
-                    .insert(CollisionGroups::new(COMBOBOX_BIT, COMBOBOX_FILTER));
+                commands.entity(entity).insert(collision_groups::COMBOBOX);
             }
         }
         if let ComboboxState::DespawningAnimation(animation_time) = &mut *combobox_state {
@@ -320,7 +343,7 @@ fn change_direction(
     for (combobox, handle) in comboboxes.iter() {
         if let Some(mut gravity) = combobox.local_gravity {
             if let Some(rb) = context.bodies.get_mut(handle.0) {
-                gravity = gravity * GRAVITY * rb.mass();
+                gravity = gravity * GRAVITY_FORCE * rb.mass();
                 rb.set_gravity_scale(0., true);
                 rb.reset_forces(true);
                 rb.add_force(Vec2::new(gravity.x, gravity.y).into(), true);
@@ -339,7 +362,7 @@ fn change_gravity(
     for combobox in comboboxes.iter() {
         if matches!(combobox.box_type, ComboboxType::Gravity) {
             if let Some(gravity) = combobox.local_gravity {
-                config.gravity = gravity * GRAVITY;
+                config.gravity = gravity * GRAVITY_FORCE;
                 gravity_change_flag = true;
             }
         }

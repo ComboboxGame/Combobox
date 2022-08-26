@@ -1,4 +1,4 @@
-use crate::core::{MapBuilder, Material, WALL_BIT, WALL_FILTER};
+use crate::core::{collision_groups, Material, SceneBuilder};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::shape::Quad;
 use bevy::prelude::*;
@@ -19,7 +19,7 @@ pub struct WallBundle {
     collision_groups: CollisionGroups,
 }
 
-impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
+impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
     pub fn spawn_wall_from_to_xy(
         &mut self,
         left: f32,
@@ -47,7 +47,7 @@ impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
                 )),
                 ..default()
             },
-            collision_groups: CollisionGroups::new(WALL_BIT, WALL_FILTER),
+            collision_groups: collision_groups::WALL,
         })
     }
 }

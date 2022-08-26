@@ -410,7 +410,7 @@ pub fn prepare_bloom_targets(
     mut texture_cache: ResMut<TextureCache>,
     cameras: Query<(Entity, &ExtractedCamera)>,
 ) {
-    const MIPS: u32 = 6;
+    const MIPS: u32 = 4;
 
     let mut textures_map = HashMap::default();
 

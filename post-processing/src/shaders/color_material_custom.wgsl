@@ -1,11 +1,23 @@
 #import bevy_sprite::mesh2d_types
 #import bevy_sprite::mesh2d_view_bindings
 
+
+let MAX_LIGHTS_NUM: i32 = 16;
+
+struct Lights {
+    lights_num: u32,
+    positions: array<vec4<f32>, MAX_LIGHTS_NUM>,
+    colors: array<vec4<f32>, MAX_LIGHTS_NUM>,
+    ambient: vec4<f32>,
+}
+
 struct ColorMaterial {
     color: vec4<f32>,
     // 'flags' is a bit field indicating various options. u32 is 32 bits so we have up to 32 options.
     flags: u32,
+    lights: Lights,
 };
+
 let COLOR_MATERIAL_FLAGS_TEXTURE_BIT: u32 = 1u;
 let COLOR_MATERIAL_FLAGS_EMISSIVE_BIT: u32 = 2u;
 
@@ -55,6 +67,24 @@ fn fragment(in: FragmentInput) -> @location(0) vec4<f32> {
     if (output_color.a < 0.01) {
         output_color = vec4(output_color.rgb, 0.0);
     }
+
+    var light = material.lights.ambient.rgb;
+
+    for (var i:u32 = 0u; i < material.lights.lights_num; i++) {
+        let radius = material.lights.positions[i].w;
+        let dist = length(in.world_position.xy - material.lights.positions[i].xy);
+        if (dist >= radius) {
+            // continue;
+        }
+        //let intensity = sqrt(1.0 - dist * dist / (radius * radius));
+        let x = dist / radius;
+        let intensity = exp(-x*x*4.0);
+        light += intensity * material.lights.colors[i].rgb;
+    }
+
+    light = light / (1.0 + dot(light, vec3(0.33, 0.33, 0.33)));
+
+    output_color = vec4(output_color.rgb * light, output_color.w);
 
     return output_color;
 }

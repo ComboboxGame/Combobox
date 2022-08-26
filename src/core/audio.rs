@@ -21,9 +21,9 @@ pub struct PlayerStatus {
     start_time: Option<Instant>,
 }
 
-pub struct MusicPlugin;
+pub struct AudioPlugin;
 
-impl Plugin for MusicPlugin {
+impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(setup_background_music);
         app.add_system(play_background_music);

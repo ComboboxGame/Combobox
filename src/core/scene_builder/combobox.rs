@@ -3,8 +3,9 @@ use bevy::prelude::shape::Quad;
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 use bevy_rapier2d::prelude::*;
+use post_processing::PointLight2d;
 
-use crate::core::{Combobox, ComboboxState, ComboboxType, MapBuilder, Material};
+use crate::core::{Combobox, ComboboxState, ComboboxType, Material, SceneBuilder};
 
 #[derive(Bundle)]
 pub struct ComboboxBundle {
@@ -19,6 +20,7 @@ pub struct ComboboxBundle {
     pub read_mass: ReadMassProperties,
     pub collision_groups: CollisionGroups,
     pub velocity: Velocity,
+    pub point_light: PointLight2d,
 }
 
 impl ComboboxBundle {
@@ -35,12 +37,23 @@ impl ComboboxBundle {
             ComboboxType::Undo => Color::rgb_u8(152, 88, 255),
             ComboboxType::Gravity => Color::rgb_u8(211, 42, 42),
             ComboboxType::Direction { .. } => Color::rgb_u8(255, 182, 193),
-            ComboboxType::Lamp { .. } => Color::rgb_u8(255, 215, 0),
+            ComboboxType::Lamp { color } => color * 2.5,
         };
+
         let image = assets.load("images/box-default-2.png");
 
         let mut material = Material::from(color);
         material.texture = Some(image);
+
+        let point_light = match combobox.box_type {
+            ComboboxType::Lamp { color } => {
+                PointLight2d {
+                    radius: combobox.world_size() * 5.0,
+                    color,
+                }
+            }
+            _ => PointLight2d::default(),
+        };
 
         ComboboxBundle {
             combobox: combobox.clone(),
@@ -59,11 +72,12 @@ impl ComboboxBundle {
             read_mass: ReadMassProperties::default(),
             collision_groups: CollisionGroups::new(0, 0),
             velocity: Velocity::default(),
+            point_light,
         }
     }
 }
 
-impl<'w, 's, 'a, 'b> MapBuilder<'w, 's, 'a, 'b> {
+impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
     pub fn spawn_box_xy(
         &mut self,
         combobox: Combobox,

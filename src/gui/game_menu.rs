@@ -1,8 +1,7 @@
 use bevy::prelude::*;
 
-use crate::game::GameState;
-
 use crate::gui::TRANSPARENT_COLOR;
+use crate::states::{AudioState, CameraState, GuiState, LevelState};
 
 #[derive(Debug, Clone)]
 pub struct GameMenuPlugin;
@@ -15,24 +14,31 @@ pub enum GameMenuButton {
 
 impl Plugin for GameMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(GameState::Game).with_system(setup));
+        app.add_system_set(SystemSet::on_enter(GuiState::Level).with_system(setup));
         app.add_system_to_stage(CoreStage::PreUpdate, interaction);
-        app.add_system_set(SystemSet::on_exit(GameState::Game).with_system(cleanup));
+        app.add_system_set(SystemSet::on_exit(GuiState::Level).with_system(cleanup));
     }
 }
 
 fn interaction(
     interaction_query: Query<(&Interaction, &GameMenuButton), (Changed<Interaction>, With<Button>)>,
-    mut game_state: ResMut<State<GameState>>,
+    mut level_state: ResMut<State<LevelState>>,
+    mut audio_state: ResMut<State<AudioState>>,
+    mut gui_state: ResMut<State<GuiState>>,
+    mut camera_state: ResMut<State<CameraState>>,
 ) {
     for (interaction, button) in interaction_query.iter() {
         match *interaction {
             Interaction::Clicked => match *button {
                 GameMenuButton::Restart => {
-                    game_state.restart().unwrap();
+                    level_state.restart().unwrap();
                 }
                 GameMenuButton::Back => {
-                    game_state.set(GameState::LevelMenu).unwrap();
+                    // Go back to level selection
+                    level_state.set(LevelState::None).unwrap();
+                    audio_state.set(AudioState::None).unwrap();
+                    gui_state.set(GuiState::LevelSelection).unwrap();
+                    camera_state.set(CameraState::None).unwrap();
                 }
             },
             _ => {}

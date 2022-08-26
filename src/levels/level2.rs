@@ -1,7 +1,7 @@
-use crate::core::{Combobox, ComboboxType, MapBuilder, PlayerIndex};
+use crate::core::{Combobox, ComboboxType, PlayerIndex, SceneBuilder};
 use bevy::prelude::*;
 
-pub fn setup_level2(builder: &mut MapBuilder) {
+pub fn setup_level2(builder: &mut SceneBuilder) {
     builder.set_background_color(Color::rgb(0.06, 0.06, 0.06));
 
     builder.set_boundaries(-800.0, 2000.0, -600.0, 2000.0);

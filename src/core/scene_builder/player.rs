@@ -3,10 +3,10 @@ use bevy::render::mesh::{Indices, PrimitiveTopology};
 use bevy::sprite::Mesh2dHandle;
 use bevy_rapier2d::dynamics::{CoefficientCombineRule, Velocity};
 use bevy_rapier2d::prelude::*;
+use post_processing::PointLight2d;
 
 use crate::core::{
-    material_from_texture_and_emissive, Material, Player, PlayerIndex, PlayerType, PLAYER_BIT,
-    PLAYER_FILTER,
+    collision_groups, material_from_texture_and_emissive, Material, Player, PlayerIndex, PlayerType,
 };
 
 fn create_quad(half_size: Vec2, state: u32, num_states: u32, rotation: u32) -> Mesh {
@@ -83,6 +83,7 @@ pub struct PlayerBundle {
     visibility: VisibilityBundle,
     #[bundle]
     transform: TransformBundle,
+    point_light: PointLight2d,
 }
 
 impl PlayerBundle {
@@ -120,10 +121,14 @@ impl PlayerBundle {
             player_states,
             rigid_body: RigidBody::Dynamic,
             axes: LockedAxes::ROTATION_LOCKED,
-            collision_groups: CollisionGroups::new(PLAYER_BIT, PLAYER_FILTER),
+            collision_groups: collision_groups::PLAYER,
             friction: Friction {
                 coefficient: 0.0,
                 combine_rule: CoefficientCombineRule::Min,
+            },
+            point_light: PointLight2d {
+                radius: 200.0,
+                color: Color::WHITE,
             },
             material,
             ..default()

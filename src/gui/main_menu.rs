@@ -2,19 +2,20 @@ use bevy::prelude::*;
 use bevy::utils::HashSet;
 
 use crate::core::{PlayerType, PlayersSettings, MAX_PLAYERS_NUM};
-use crate::game::GameState;
+
 use crate::gui::buttons::{spawn_basic_button, MenuArrow};
 use crate::gui::TRANSPARENT_COLOR;
+use crate::states::GuiState;
 use std::ops::DerefMut;
 
 #[derive(Debug, Clone)]
-pub struct MainMenuPlugin;
+pub struct MainScreenGUIPlugin;
 
 pub const PLAYER_COLORS_NUM: usize = 7;
 
 #[derive(Debug, Clone, Component)]
 pub enum MainMenuButton {
-    Play1,
+    Play,
     Play2,
     Settings,
     Credits,
@@ -31,15 +32,15 @@ pub struct ChoosePlayerImage {
     player_index: usize,
 }
 
-impl Plugin for MainMenuPlugin {
+impl Plugin for MainScreenGUIPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(GameState::MainMenu).with_system(setup));
+        app.add_system_set(SystemSet::on_enter(GuiState::MainScreen).with_system(setup));
         app.add_system_set(
-            SystemSet::on_update(GameState::MainMenu)
+            SystemSet::on_update(GuiState::MainScreen)
                 .with_system(interaction)
                 .with_system(update_player_preview),
         );
-        app.add_system_set(SystemSet::on_exit(GameState::MainMenu).with_system(cleanup));
+        app.add_system_set(SystemSet::on_exit(GuiState::MainScreen).with_system(cleanup));
     }
 }
 
@@ -74,14 +75,14 @@ fn update_player_preview(
 fn interaction(
     buttons: Query<(&Interaction, &MainMenuButton), (Changed<Interaction>, Without<MainMenuArrow>)>,
     arrows: Query<(&Interaction, &MainMenuArrow), (Changed<Interaction>, Without<MainMenuButton>)>,
-    mut game_state: ResMut<State<GameState>>,
+    mut gui_state: ResMut<State<GuiState>>,
     mut player_settings: ResMut<PlayersSettings>,
 ) {
     for (interaction, button) in buttons.iter() {
         match *interaction {
             Interaction::Clicked => match *button {
-                MainMenuButton::Play1 => {
-                    game_state.set(GameState::LevelMenu).unwrap();
+                MainMenuButton::Play => {
+                    gui_state.set(GuiState::LevelSelection).unwrap();
                 }
                 _ => {}
             },
@@ -275,7 +276,7 @@ fn setup(
                         parent,
                         asset_server.load("images/buttons/play-button.png").into(),
                         100.0,
-                        MainMenuButton::Play1,
+                        MainMenuButton::Play,
                     );
                     parent
                         .spawn_bundle(NodeBundle {
