@@ -12,7 +12,7 @@ use crate::states::LevelState;
 #[derive(Clone, Debug)]
 pub enum ComboboxType {
     Standard { group: u32 },
-    Buf,
+    Buff(f32),
     Undo,
     Direction { direction: Vec2 },
     Gravity,
@@ -142,10 +142,7 @@ impl Combobox {
 
                 return Some(vec![(big_box, center)]);
             }
-            (
-                ComboboxType::Lamp { color: color1 },
-                ComboboxType::Lamp { .. },
-            ) => {
+            (ComboboxType::Lamp { color: color1 }, ComboboxType::Lamp { .. }) => {
                 let mut gravity = None;
                 if let Some(first_gravity) = first.local_gravity {
                     if let Some(second_gravity) = second.local_gravity {
@@ -157,7 +154,9 @@ impl Combobox {
 
                 let big_box = Combobox {
                     weight: first.weight + second.weight,
-                    box_type: ComboboxType::Lamp {color: color1.clone()},
+                    box_type: ComboboxType::Lamp {
+                        color: color1.clone(),
+                    },
                     combined_from: vec![
                         (first.clone(), first_offset),
                         (second.clone(), second_offset),
@@ -167,9 +166,9 @@ impl Combobox {
 
                 return Some(vec![(big_box, center)]);
             }
-            (ComboboxType::Buf, ComboboxType::Standard { .. }) => {
+            (ComboboxType::Buff(buff), ComboboxType::Standard { .. }) => {
                 let buffed_box = Combobox {
-                    weight: second.weight * 2.,
+                    weight: second.weight * buff,
                     box_type: second.box_type.clone(),
                     combined_from: vec![
                         (first.clone(), first_offset),
@@ -219,7 +218,7 @@ impl Combobox {
                 );
             }
             (_, ComboboxType::Undo)
-            | (ComboboxType::Standard { .. }, ComboboxType::Buf)
+            | (ComboboxType::Standard { .. }, ComboboxType::Buff(_))
             | (ComboboxType::Standard { .. }, ComboboxType::Direction { .. })
             | (ComboboxType::Direction { .. }, ComboboxType::Gravity) => {
                 Self::merge(second, second_pos, first, first_pos)

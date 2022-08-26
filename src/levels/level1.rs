@@ -1,13 +1,13 @@
 use crate::core::{Combobox, ComboboxType, PlayerIndex, SceneBuilder};
 use bevy::prelude::*;
 
-pub fn setup_level1(builder: &mut SceneBuilder) {
+pub fn setup(builder: &mut SceneBuilder) {
     builder.set_background_color(Color::rgb(0.06, 0.06, 0.06));
 
     builder.spawn_wall_from_to(Vec2::new(-1500.0, -1500.0), Vec2::new(1000.0, 0.0));
 
     builder.spawn_wall_from_to(Vec2::new(-1500.0, -1500.0), Vec2::new(-200.0, 1000.0));
-    builder.spawn_wall_from_to(Vec2::new(900.0, -1500.0), Vec2::new(1800.0, 300.0));
+    builder.spawn_wall_from_to(Vec2::new(900.0, -1500.0), Vec2::new(1800.0, 175.0));
     builder.spawn_wall_from_to(Vec2::new(1300.0, -1500.0), Vec2::new(2000.0, 2000.0));
     builder.spawn_wall_from_to(Vec2::new(-1500.0, 800.0), Vec2::new(2000.0, 2000.0));
 

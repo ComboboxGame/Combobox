@@ -8,12 +8,11 @@ use crate::core::{
     SceneBoundaries, SceneBuilder, SpawnPoint, GRAVITY_FORCE,
 };
 
-use crate::levels::level1::setup_level1;
-use crate::levels::level2::setup_level2;
 use crate::states::{AudioState, CameraState, GuiState, LevelState};
 
 mod level1;
 mod level2;
+mod level3;
 
 pub struct LevelPlugin;
 
@@ -23,7 +22,7 @@ pub struct CurrentLevel {
 
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(CurrentLevel { level: 0 });
+        app.insert_resource(CurrentLevel { level: 3 });
         app.add_system_set(SystemSet::on_enter(LevelState::Level).with_system(setup));
         app.add_system_set(SystemSet::on_exit(LevelState::Level).with_system(cleanup));
         app.add_system_set(
@@ -172,10 +171,13 @@ fn setup(
                 background_music,
             );
             if current_level.level == 1 {
-                setup_level1(&mut builder);
+                level1::setup(&mut builder);
             }
             if current_level.level == 2 {
-                setup_level2(&mut builder);
+                level2::setup(&mut builder);
+            }
+            if current_level.level == 3 {
+                level3::setup(&mut builder);
             }
         });
 }

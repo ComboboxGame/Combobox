@@ -32,26 +32,33 @@ impl ComboboxBundle {
         assets: &mut AssetServer,
     ) -> Self {
         let color = match combobox.box_type {
-            ComboboxType::Standard { .. } => Color::rgb_u8(87, 255, 162),
-            ComboboxType::Buf => Color::rgb(2.0, 3.0, 0.5),
+            ComboboxType::Standard { group } => {
+                if group == 1 {
+                    Color::rgb_u8(87, 255, 162)
+                } else {
+                    Color::rgb_u8(255, 87, 162)
+                }
+            }
+            ComboboxType::Buff(_) => Color::CYAN,
             ComboboxType::Undo => Color::rgb_u8(152, 88, 255),
             ComboboxType::Gravity => Color::rgb_u8(211, 42, 42),
             ComboboxType::Direction { .. } => Color::rgb_u8(255, 182, 193),
             ComboboxType::Lamp { color } => color * 2.5,
         };
 
-        let image = assets.load("images/box-default-2.png");
+        let image = match combobox.box_type {
+            ComboboxType::Buff(_) => assets.load("images/box-default-3.png"),
+            _ => assets.load("images/box-default-2.png"),
+        };
 
         let mut material = Material::from(color);
         material.texture = Some(image);
 
         let point_light = match combobox.box_type {
-            ComboboxType::Lamp { color } => {
-                PointLight2d {
-                    radius: combobox.world_size() * 5.0,
-                    color,
-                }
-            }
+            ComboboxType::Lamp { color } => PointLight2d {
+                radius: combobox.world_size() * 5.0,
+                color,
+            },
             _ => PointLight2d::default(),
         };
 

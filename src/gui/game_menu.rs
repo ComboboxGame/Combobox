@@ -54,7 +54,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .spawn_bundle(NodeBundle {
             style: Style {
                 flex_direction: FlexDirection::Row,
-                size: Size::new(Val::Percent(100.00), Val::Percent(16.66)),
+                size: Size::new(Val::Percent(100.00), Val::Percent(12.00)),
                 position_type: PositionType::Absolute,
                 ..default()
             },

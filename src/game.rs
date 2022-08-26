@@ -13,15 +13,18 @@ pub struct ComboboxGamePlugin;
 
 impl Plugin for ComboboxGamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_state(GuiState::MainScreen);
-        app.add_state(AudioState::None);
-        app.add_state(LevelState::None);
-        app.add_state(CameraState::None);
-
         if env::var("LOCAL_BUILD") == Ok("1".to_string()) {
             app.insert_resource(Msaa { samples: 4 });
+            app.add_state(GuiState::Level);
+            app.add_state(AudioState::Level);
+            app.add_state(LevelState::Level);
+            app.add_state(CameraState::FollowPlayers);
         } else {
             app.insert_resource(Msaa { samples: 1 });
+            app.add_state(GuiState::MainScreen);
+            app.add_state(AudioState::None);
+            app.add_state(LevelState::None);
+            app.add_state(CameraState::None);
         }
 
         app.add_startup_system(setup_camera);

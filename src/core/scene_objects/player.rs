@@ -149,8 +149,8 @@ impl Default for Player {
         Player {
             width: 60.0,
             height: 100.0,
-            max_speed: 200.,
-            max_acceleration: 1850.0,
+            max_speed: 160.,
+            max_acceleration: 1250.0,
             jump_impulse: 600.,
             is_moving: false,
             index: PlayerIndex::SinglePlayer,
