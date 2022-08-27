@@ -15,8 +15,32 @@
       font-family: sans-serif;
     }
 
+    #start-button-wrapper {
+      height: 720px;
+      width: 1280px;
+      display: flex;
+      justify-content: center;
+    }
+
+    #start-button {
+      font-size: 32px;
+      border-radius: 4px;
+      padding: 10px;
+      background: #2c2c2c;
+      height: fit-content;
+      margin: auto;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    #start-button:hover {
+      background: #1b1b1b;
+    }
+
     h1 {
       font-size: 72px;
+      position: absolute;
+      top: 10%;
     }
 
     canvas {
@@ -30,9 +54,18 @@
 
 <h1>Combobox!</h1>
 
+<div id="start-button-wrapper">
+  <div id="start-button">Start!</div>
+</div>
+
 <script type="module">
   import init from './out/combobox-game.js'
-  init()
+
+  document.getElementById('start-button').onclick = function () {
+    document.getElementById('start-button-wrapper').remove();
+    init();
+  };
+
 </script>
 
 </html>
