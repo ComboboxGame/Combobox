@@ -5,6 +5,7 @@ use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 use crate::core::Material;
 pub use boundaries::*;
 pub use combobox::*;
+pub use door::*;
 pub use elevator::*;
 pub use player::*;
 pub use spawn_point::*;
@@ -14,6 +15,7 @@ use super::BackgroundMusic;
 
 mod boundaries;
 mod combobox;
+mod door;
 mod elevator;
 mod player;
 mod spawn_point;
@@ -30,6 +32,15 @@ pub struct SceneBuilder<'w, 's, 'a, 'b> {
 }
 
 impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
+    pub const BACKGROUND_DEPTH: f32 = -2.9;
+    pub const WALL_DEPTH: f32 = -0.8;
+    pub const ELEVATOR_DEPTH: f32 = -0.7;
+    pub const DOOR_DEPTH: f32 = -0.6;
+    pub const PLAYER_DEPTH: f32 = -0.2;
+    pub const BOX_DEPTH: f32 = -0.1;
+
+    pub const CELL_SIZE: f32 = 50.0;
+
     pub fn new(
         builder: &'b mut ChildBuilder<'w, 's, 'a>,
         meshes: &'b mut Assets<Mesh>,
@@ -55,7 +66,7 @@ impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
         self.builder.spawn_bundle(MaterialMesh2dBundle {
             mesh: Mesh2dHandle(self.meshes.add(Quad::new(Vec2::ONE * 10000.0).into())),
             material: self.materials.add(color.into()),
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, -100.0)),
+            transform: Transform::from_translation(Vec3::new(0.0, 0.0, Self::BACKGROUND_DEPTH)),
             ..default()
         });
     }

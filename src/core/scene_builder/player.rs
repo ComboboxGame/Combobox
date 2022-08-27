@@ -6,7 +6,8 @@ use bevy_rapier2d::prelude::*;
 use post_processing::PointLight2d;
 
 use crate::core::{
-    collision_groups, material_from_texture_and_emissive, Material, Player, PlayerIndex, PlayerType,
+    collision_groups, material_from_texture_and_emissive, Material, Player, PlayerIndex,
+    PlayerType, SceneBuilder,
 };
 
 fn create_quad(half_size: Vec2, state: u32, num_states: u32, rotation: u32) -> Mesh {
@@ -132,7 +133,11 @@ impl PlayerBundle {
                 radius: 200.0,
                 color: Color::WHITE,
             },
-            transform: TransformBundle::from_transform(Transform::from_xyz(0.0, 0.0, -0.5)),
+            transform: TransformBundle::from_transform(Transform::from_xyz(
+                0.0,
+                0.0,
+                SceneBuilder::PLAYER_DEPTH,
+            )),
             material,
             ..default()
         }

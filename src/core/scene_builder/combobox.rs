@@ -69,7 +69,7 @@ impl ComboboxBundle {
             mesh_bundle: MaterialMesh2dBundle {
                 mesh: Mesh2dHandle(meshes.add(Quad::new(Vec2::ONE * combobox.world_size()).into())),
                 material: materials.add(material),
-                transform: Transform::from_xyz(position.x, position.y, -1.0)
+                transform: Transform::from_xyz(position.x, position.y, SceneBuilder::BOX_DEPTH)
                     .with_scale(Vec3::ONE * 0.01),
                 ..MaterialMesh2dBundle::default()
             },
@@ -97,7 +97,7 @@ impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
     pub fn spawn_box(&mut self, combobox: Combobox, position: Vec2) -> EntityCommands<'w, 's, '_> {
         self.builder.spawn_bundle(ComboboxBundle::new(
             combobox,
-            position,
+            position * Self::CELL_SIZE,
             self.meshes,
             self.materials,
             self.assets,

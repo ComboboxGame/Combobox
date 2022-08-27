@@ -30,7 +30,13 @@ impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
         self.spawn_wall_from_to(Vec2::new(left, bottom), Vec2::new(right, top))
     }
 
-    pub fn spawn_wall_from_to(&mut self, from: Vec2, to: Vec2) -> EntityCommands<'w, 's, '_> {
+    pub fn spawn_wall_from_to(
+        &mut self,
+        mut from: Vec2,
+        mut to: Vec2,
+    ) -> EntityCommands<'w, 's, '_> {
+        from *= Self::CELL_SIZE;
+        to *= Self::CELL_SIZE;
         let size = from.max(to) - from.min(to);
         let translation = (from + to) * 0.5;
         self.builder.spawn_bundle(WallBundle {
@@ -43,7 +49,7 @@ impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
                 transform: Transform::from_translation(Vec3::new(
                     translation.x,
                     translation.y,
-                    -2.0,
+                    Self::WALL_DEPTH,
                 )),
                 ..default()
             },

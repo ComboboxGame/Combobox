@@ -4,7 +4,6 @@ use crate::utils::SceneDirection;
 use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_rapier2d::prelude::*;
 
-
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {

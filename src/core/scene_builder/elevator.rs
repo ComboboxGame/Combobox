@@ -32,7 +32,7 @@ impl ElevatorBundle {
                     meshes.add(Quad::new(Vec2::new(Elevator::WIDTH, Elevator::HEIGHT)).into()),
                 ),
                 material: materials.add(Color::BLUE.into()),
-                transform: Transform::from_xyz(start.x, start.y, -1.0),
+                transform: Transform::from_xyz(start.x, start.y, SceneBuilder::ELEVATOR_DEPTH),
                 ..MaterialMesh2dBundle::default()
             },
             collision_groups: collision_groups::ELEVATOR,
@@ -58,10 +58,12 @@ impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
 
     pub fn spawn_elevator(
         &mut self,
-        start: Vec2,
-        end: Vec2,
+        mut start: Vec2,
+        mut end: Vec2,
         elevator_type: ElevatorType,
     ) -> EntityCommands<'w, 's, '_> {
+        start *= SceneBuilder::CELL_SIZE;
+        end *= SceneBuilder::CELL_SIZE;
         self.builder.spawn_bundle(ElevatorBundle::new(
             Elevator {
                 start,

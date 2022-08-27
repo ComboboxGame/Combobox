@@ -24,7 +24,9 @@ impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
             .spawn()
             .insert(SpawnPoint { index })
             .insert_bundle(TransformBundle::from_transform(Transform::from_xyz(
-                position.x, position.y, 0.0,
+                position.x * Self::CELL_SIZE,
+                position.y * Self::CELL_SIZE,
+                0.0,
             )))
             .insert_bundle(VisibilityBundle::default());
     }
@@ -42,7 +44,11 @@ impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
                 material: self
                     .materials
                     .add(self.assets.load("images/finish.png").into()),
-                transform: Transform::from_xyz(position.x, position.y, -1.0),
+                transform: Transform::from_xyz(
+                    position.x * Self::CELL_SIZE,
+                    position.y * Self::CELL_SIZE,
+                    Self::WALL_DEPTH,
+                ),
                 ..default()
             })
             .with_children(|parent| {

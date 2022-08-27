@@ -34,16 +34,17 @@ fn follow_players(
                 transform.scale *= zoom.powf(0.05);
             }
 
-            let mut pos: Vec3 = player.translation() * 0.05 + transform.translation * 0.95;
+            let mut pos: Vec2 =
+                player.translation().truncate() * 0.05 + transform.translation.truncate() * 0.95;
 
             // Clamp camera to boundaries
             if let Some(boundaries) = boundaries.rect {
                 let view_rect = get_view_rect(&camera, &transform);
                 let view_size = (view_rect.max - view_rect.min) * 0.5;
-                pos = clamp_to_rect(pos.truncate(), view_size, boundaries).extend(pos.z);
+                pos = clamp_to_rect(pos, view_size, boundaries);
             }
 
-            transform.translation = pos;
+            transform.translation = pos.extend(transform.translation.z);
         }
     }
 }
