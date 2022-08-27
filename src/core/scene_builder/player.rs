@@ -100,13 +100,15 @@ impl PlayerBundle {
             asset_server.load("images/robot-states-emissive.png"),
         ));
 
+        let player = Player { index, ..default() };
+
         for state in 0..5 {
             player_states.states.push([0, 1, 2, 3].map(|rot| {
-                let mesh = create_quad(Vec2::new(30.0, 50.0), state, 5, rot);
+                let mesh = create_quad(Vec2::new(player.width, player.height) * 0.5, state, 5, rot);
                 let collider = if rot % 2 == 0 {
-                    Collider::cuboid(30.0, 50.0)
+                    Collider::cuboid(player.width * 0.5, player.height * 0.5)
                 } else {
-                    Collider::cuboid(50.0, 30.0)
+                    Collider::cuboid(player.height * 0.5, player.width * 0.5)
                 };
                 (collider, Mesh2dHandle(meshes.add(mesh)))
             }))
@@ -115,7 +117,7 @@ impl PlayerBundle {
         player_states.current_state = 2;
 
         PlayerBundle {
-            player: Player { index, ..default() },
+            player,
             collider: player_states.get_current_bundle().0,
             mesh: player_states.get_current_bundle().1,
             player_states,
@@ -130,6 +132,7 @@ impl PlayerBundle {
                 radius: 200.0,
                 color: Color::WHITE,
             },
+            transform: TransformBundle::from_transform(Transform::from_xyz(0.0, 0.0, -0.5)),
             material,
             ..default()
         }

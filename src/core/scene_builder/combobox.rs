@@ -69,7 +69,7 @@ impl ComboboxBundle {
             mesh_bundle: MaterialMesh2dBundle {
                 mesh: Mesh2dHandle(meshes.add(Quad::new(Vec2::ONE * combobox.world_size()).into())),
                 material: materials.add(material),
-                transform: Transform::from_xyz(position.x, position.y, 0.0)
+                transform: Transform::from_xyz(position.x, position.y, -1.0)
                     .with_scale(Vec3::ONE * 0.01),
                 ..MaterialMesh2dBundle::default()
             },

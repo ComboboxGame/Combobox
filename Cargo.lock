@@ -977,6 +977,7 @@ dependencies = [
  "bevy_kira_audio",
  "bevy_rapier2d",
  "post-processing",
+ "rapier2d",
 ]
 
 [[package]]

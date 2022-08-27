@@ -1,9 +1,9 @@
+use crate::core::{collision_groups, Combobox, PlayerRectState, GRAVITY_FORCE};
+use crate::states::LevelState;
+use crate::utils::SceneDirection;
 use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_rapier2d::prelude::*;
 
-use crate::core::{collision_groups, PlayerRectState};
-use crate::states::LevelState;
-use crate::utils::SceneDirection;
 
 pub struct PlayerPlugin;
 
@@ -16,7 +16,8 @@ impl Plugin for PlayerPlugin {
             SystemSet::on_update(LevelState::Level)
                 .with_system(move_player)
                 .with_system(jump_player)
-                .with_system(update_rect_state),
+                .with_system(update_rect_state)
+                .with_system(grab),
         );
     }
 }
@@ -33,6 +34,13 @@ impl MoveKeyGroups {
             MoveKeyGroups::Arrows => [KeyCode::Down, KeyCode::Right, KeyCode::Up, KeyCode::Left],
         };
         keys[direction.get_index() as usize]
+    }
+
+    pub fn get_grab_key(&self) -> KeyCode {
+        match *self {
+            MoveKeyGroups::WASD => KeyCode::LControl,
+            MoveKeyGroups::Arrows => KeyCode::RControl,
+        }
     }
 }
 
@@ -112,8 +120,9 @@ pub struct Player {
     pub height: f32,
     pub max_speed: f32,
     pub max_acceleration: f32,
-    pub jump_impulse: f32,
+    pub jump_height: f32,
     pub is_moving: bool,
+    pub ungrab_time: f32,
 
     // Weird concept of player index.
     // Contains index of player in current set of players
@@ -147,12 +156,13 @@ impl PlayerIndex {
 impl Default for Player {
     fn default() -> Self {
         Player {
-            width: 60.0,
-            height: 100.0,
+            width: 54.0,
+            height: 90.0,
             max_speed: 160.,
-            max_acceleration: 1250.0,
-            jump_impulse: 600.,
+            max_acceleration: 1800.0,
+            jump_height: 110.,
             is_moving: false,
+            ungrab_time: 0.0,
             index: PlayerIndex::SinglePlayer,
         }
     }
@@ -166,6 +176,7 @@ impl Player {
         gravity_direction: SceneDirection,
         position: Vec2,
         context: &RapierContext,
+        range: [f32; 2],
     ) -> Option<(Entity, f32)> {
         const INTERVALS: u32 = 5;
 
@@ -178,7 +189,8 @@ impl Player {
         let mut res = None;
 
         for i in 0..INTERVALS {
-            let t = (i as f32 / (INTERVALS - 1) as f32) * 1.8 - 0.9;
+            let t = ((i as f32 / (INTERVALS - 1) as f32) * (range[1] - range[0]) + range[0]) * 2.0
+                - 1.0;
             let origin =
                 position + direction.get_vec() * du + direction.get_perp().get_vec() * t * dv;
             let dir = direction.get_vec();
@@ -215,6 +227,20 @@ impl Player {
         buttons
     }
 
+    pub fn get_buttons_grab(&self) -> Vec<KeyCode> {
+        let mut buttons = vec![];
+
+        if self.index == PlayerIndex::SinglePlayer || self.index == PlayerIndex::TwoPlayers(0) {
+            buttons.push(MoveKeyGroups::WASD.get_grab_key())
+        }
+
+        if self.index == PlayerIndex::SinglePlayer || self.index == PlayerIndex::TwoPlayers(1) {
+            buttons.push(MoveKeyGroups::Arrows.get_grab_key())
+        }
+
+        buttons
+    }
+
     pub fn get_buttons_left(&self, gravity_direction: SceneDirection) -> Vec<KeyCode> {
         self.get_buttons_right(gravity_direction.get_opposite())
     }
@@ -236,12 +262,76 @@ impl Player {
     }
 }
 
+fn grab(
+    mut commands: Commands,
+    mut players: Query<(Entity, &GlobalTransform, &mut Player, Option<&ImpulseJoint>)>,
+    boxes: Query<(&GlobalTransform, &Combobox), With<Combobox>>,
+    context: Res<RapierContext>,
+    keys: Res<Input<KeyCode>>,
+    config: ResMut<RapierConfiguration>,
+    time: Res<Time>,
+) {
+    let gravity_direction = SceneDirection::from_gravity_direction(&config);
+
+    for (entity, transform, mut player, maybe_joint) in players.iter_mut() {
+        if maybe_joint.is_none() {
+            player.ungrab_time += time.delta_seconds();
+        } else {
+            player.ungrab_time = 0.0;
+        }
+
+        if maybe_joint.is_none()
+            && keys.any_pressed(player.get_buttons_grab())
+            && player.ungrab_time > 0.2
+        {
+            let mut dir = gravity_direction.get_perp();
+
+            for _ in 0..2 {
+                let collider = player.find_obstacle(
+                    entity,
+                    dir,
+                    gravity_direction,
+                    transform.translation().truncate(),
+                    &context,
+                    [0.45, 0.55],
+                );
+
+                if let Some((e, d)) = collider {
+                    if d < 5.0 {
+                        if let Ok((t, c)) = boxes.get(e) {
+                            let mut offset = (t.translation() - transform.translation()).truncate();
+
+                            let dist = gravity_direction.get_perp().get_vec().dot(offset).abs();
+                            let target_dist = (player.width + c.world_size()) * 0.5;
+
+                            offset += (target_dist - dist) * gravity_direction.get_perp().get_vec();
+
+                            offset -= gravity_direction.get_vec() * 5.0;
+
+                            let joint = FixedJointBuilder::new().local_anchor2(offset);
+                            commands.entity(entity).insert(ImpulseJoint::new(e, joint));
+                            break;
+                        }
+                    }
+                }
+
+                dir = dir.get_opposite();
+            }
+        }
+
+        if keys.any_just_released(player.get_buttons_grab()) {
+            commands.entity(entity).remove::<ImpulseJoint>();
+        }
+    }
+}
+
 fn move_player(
     mut players: Query<(
         &mut ExternalImpulse,
         &Velocity,
         &ReadMassProperties,
         &mut Player,
+        Option<&ImpulseJoint>,
     )>,
     keys: Res<Input<KeyCode>>,
     time: Res<Time>,
@@ -249,7 +339,7 @@ fn move_player(
 ) {
     let gravity_direction = SceneDirection::from_gravity_direction(&*config);
 
-    for (mut impulse, velocity, mass, mut player) in players.iter_mut() {
+    for (mut impulse, velocity, mass, mut player, maybe_joint) in players.iter_mut() {
         let mut target_velocity = 0.0;
 
         let mut moving = false;
@@ -270,9 +360,17 @@ fn move_player(
         let delta_velocity = target_velocity - velocity.linvel.dot(right);
         let k = ((delta_velocity.abs() - player.max_speed * 1.0).max(0.0) / player.max_speed)
             .clamp(0.0, 2.0);
+
+        let max_acceleration = player.max_acceleration
+            * if maybe_joint.is_none() || target_velocity.abs() < 0.1 {
+                1.0
+            } else {
+                0.3
+            };
+
         let dv = delta_velocity
             .abs()
-            .min(player.max_acceleration * time.delta_seconds() * (1.0 + k));
+            .min(max_acceleration * time.delta_seconds() * (1.0 + k));
 
         impulse.impulse += right * delta_velocity.signum() * dv * mass.0.mass;
     }
@@ -301,12 +399,17 @@ fn jump_player(
                 gravity_direction,
                 transform.translation().truncate(),
                 &context,
+                [0.05, 0.95],
             );
 
             if let Some((_, dist)) = collider_below {
-                if dist < 0.1 && velocity.linvel.dot(gravity_direction.get_vec()).abs() < 2.0 {
-                    ext_impulse.impulse =
-                        -config.gravity.normalize() * player.jump_impulse * mass.0.mass;
+                let proj = velocity.linvel.dot(gravity_direction.get_vec());
+                let jump_velocity = (2.0 * player.jump_height * GRAVITY_FORCE).sqrt();
+
+                let delta = jump_velocity + proj;
+
+                if dist < 0.1 {
+                    ext_impulse.impulse = -config.gravity.normalize() * delta * mass.0.mass;
                 }
             }
         }
@@ -315,13 +418,19 @@ fn jump_player(
 
 fn update_rect_state(
     mut commands: Commands,
-    mut query: Query<(Entity, &mut PlayerRectState, &Player, &GlobalTransform)>,
+    mut query: Query<(
+        Entity,
+        &mut PlayerRectState,
+        &Player,
+        &GlobalTransform,
+        Option<&ImpulseJoint>,
+    )>,
     keys: Res<Input<KeyCode>>,
     config: Res<RapierConfiguration>,
     context: Res<RapierContext>,
 ) {
     let gravity_direction = SceneDirection::from_gravity_direction(&config);
-    for (entity, mut rect_state, player, transform) in query.iter_mut() {
+    for (entity, mut rect_state, player, transform, maybe_joint) in query.iter_mut() {
         let prev_rotation = rect_state.current_rotation;
         let prev_state = rect_state.current_state;
 
@@ -335,31 +444,46 @@ fn update_rect_state(
             rect_state.current_state = 0;
         }
 
-        if rect_state.current_state % 2 == 0 {
-            rect_state.current_state = 2;
-            if let Some((_, d)) = player.find_obstacle(
-                entity,
-                gravity_direction.get_perp().get_opposite(),
-                gravity_direction,
-                transform.translation().truncate(),
-                &context,
-            ) {
-                if d < 1.0 {
-                    rect_state.current_state = 0;
+        if rect_state.current_state < 4 {
+            if rect_state.current_state % 2 == 0 {
+                rect_state.current_state = 2;
+                if let Some((_, d)) = player.find_obstacle(
+                    entity,
+                    gravity_direction.get_perp().get_opposite(),
+                    gravity_direction,
+                    transform.translation().truncate(),
+                    &context,
+                    [0.05, 0.95],
+                ) {
+                    if d < 1.0 {
+                        rect_state.current_state = 0;
+                    }
+                }
+            } else {
+                rect_state.current_state = 3;
+                if let Some((_, d)) = player.find_obstacle(
+                    entity,
+                    gravity_direction.get_perp(),
+                    gravity_direction,
+                    transform.translation().truncate(),
+                    &context,
+                    [0.05, 0.95],
+                ) {
+                    if d < 1.0 {
+                        rect_state.current_state = 1;
+                    }
                 }
             }
-        } else {
-            rect_state.current_state = 3;
-            if let Some((_, d)) = player.find_obstacle(
-                entity,
-                gravity_direction.get_perp(),
-                gravity_direction,
-                transform.translation().truncate(),
-                &context,
-            ) {
-                if d < 1.0 {
-                    rect_state.current_state = 1;
-                }
+        }
+
+        if let Some(joint) = maybe_joint {
+            let anchor = joint.data.raw.local_anchor2();
+            let anchor = Vec2::new(anchor.x, anchor.y);
+            let right = gravity_direction.get_perp().get_vec();
+            if anchor.dot(right) < 0.0 {
+                rect_state.current_state = 0;
+            } else {
+                rect_state.current_state = 1;
             }
         }
 

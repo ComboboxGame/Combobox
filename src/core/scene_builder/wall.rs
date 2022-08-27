@@ -43,7 +43,7 @@ impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
                 transform: Transform::from_translation(Vec3::new(
                     translation.x,
                     translation.y,
-                    0.0,
+                    -2.0,
                 )),
                 ..default()
             },
