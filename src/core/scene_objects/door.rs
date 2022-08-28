@@ -1,4 +1,3 @@
-
 use crate::states::LevelState;
 use crate::utils::SceneDirection;
 use bevy::prelude::*;

@@ -24,8 +24,8 @@ impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
         &mut self,
         left: f32,
         right: f32,
-        top: f32,
         bottom: f32,
+        top: f32,
     ) -> EntityCommands<'w, 's, '_> {
         self.spawn_wall_from_to(Vec2::new(left, bottom), Vec2::new(right, top))
     }

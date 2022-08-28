@@ -1,12 +1,9 @@
-
 use bevy::prelude::shape::Quad;
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 use bevy_rapier2d::prelude::*;
 
-use crate::core::{
-    collision_groups, Door, DoorButton, Material, SceneBuilder,
-};
+use crate::core::{collision_groups, Door, DoorButton, Material, SceneBuilder};
 use crate::utils::SceneDirection;
 
 #[derive(Bundle)]

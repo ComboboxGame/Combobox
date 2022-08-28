@@ -11,8 +11,17 @@ use crate::core::{
 use crate::states::{AudioState, CameraState, GuiState, LevelState};
 
 mod level1;
+mod level10;
+mod level11;
+mod level12;
 mod level2;
 mod level3;
+mod level4;
+mod level5;
+mod level6;
+mod level7;
+mod level8;
+mod level9;
 
 pub struct LevelPlugin;
 
@@ -178,6 +187,33 @@ fn setup(
             }
             if current_level.level == 3 {
                 level3::setup(&mut builder);
+            }
+            if current_level.level == 4 {
+                level4::setup(&mut builder);
+            }
+            if current_level.level == 5 {
+                level5::setup(&mut builder);
+            }
+            if current_level.level == 6 {
+                level6::setup(&mut builder);
+            }
+            if current_level.level == 7 {
+                level7::setup(&mut builder);
+            }
+            if current_level.level == 8 {
+                level8::setup(&mut builder);
+            }
+            if current_level.level == 9 {
+                level9::setup(&mut builder);
+            }
+            if current_level.level == 10 {
+                level10::setup(&mut builder);
+            }
+            if current_level.level == 11 {
+                level11::setup(&mut builder);
+            }
+            if current_level.level == 12 {
+                level12::setup(&mut builder);
             }
         });
 }

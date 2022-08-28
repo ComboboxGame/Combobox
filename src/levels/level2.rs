@@ -1,4 +1,3 @@
-use crate::core::{SceneBuilder};
-
+use crate::core::SceneBuilder;
 
 pub fn setup(_builder: &mut SceneBuilder) {}
