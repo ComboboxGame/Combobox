@@ -14,7 +14,7 @@ pub struct ComboboxGamePlugin;
 
 impl Plugin for ComboboxGamePlugin {
     fn build(&self, app: &mut App) {
-        if env::var("LOCAL_BUILD") == Ok("1".to_string()) {
+        if env::var("LOCAL_BUILD") == Ok("2".to_string()) {
             app.insert_resource(Msaa { samples: 4 });
             app.add_state(GuiState::Level);
             app.add_state(AudioState::Level);

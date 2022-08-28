@@ -6,12 +6,15 @@ use crate::{
 };
 
 pub fn setup(builder: &mut SceneBuilder) {
-    const INF: f32 = 60.0;
+    const INF: f32 = 70.0;
 
     builder.set_background_color(Color::rgb(0.03, 0.03, 0.03));
 
     // spawning player
+    builder.set_min_view_range(8.0);
     builder.set_spawn_point_xy(3.5, 2., PlayerIndex::SinglePlayer);
+    builder.set_spawn_point_xy(3.0, 2., PlayerIndex::TwoPlayers(0));
+    builder.set_spawn_point_xy(5.0, 2., PlayerIndex::TwoPlayers(1));
 
     // spawning walls
     // 1

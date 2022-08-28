@@ -24,6 +24,7 @@ pub struct ComboboxBundle {
     pub collision_groups: CollisionGroups,
     pub velocity: Velocity,
     pub point_light: PointLight2d,
+    pub friction: Friction,
 }
 
 impl ComboboxBundle {
@@ -37,9 +38,9 @@ impl ComboboxBundle {
         let color = match combobox.box_type {
             ComboboxType::Standard { group } => {
                 if group == 1 {
-                    Color::rgb_u8(252, 230, 119)
+                    Color::rgb_u8(103, 245, 124)
                 } else {
-                    Color::rgb_u8(105, 214, 250)
+                    Color::rgb_u8(242, 176, 90)
                 }
             }
             ComboboxType::Buff(_) => Color::rgb_u8(50, 91, 227),
@@ -62,14 +63,22 @@ impl ComboboxBundle {
                     Some(assets.load("images/overlay-right.png"))
                 }
             }
+            ComboboxType::Buff(buff) => {
+                if (buff - 3.0).abs() < 0.1 {
+                    Some(assets.load("images/overlay-x3.png"))
+                } else if (buff - 9.0).abs() < 0.1 {
+                    Some(assets.load("images/overlay-x9.png"))
+                } else if (buff - 2.0).abs() < 0.1 {
+                    Some(assets.load("images/overlay-x2.png"))
+                } else {
+                    Some(assets.load("images/overlay-x4.png"))
+                }
+            }
             ComboboxType::Gravity => Some(assets.load("images/overlay-gravity.png")),
             _ => None,
         };
 
-        let image = match combobox.box_type {
-            ComboboxType::Buff(_) => assets.load("images/box-default-3.png"),
-            _ => assets.load("images/box-default-2.png"),
-        };
+        let image = assets.load("images/box-default-2.png");
 
         let mut material = material_from_texture_and_emissive(image, None, overlay);
         material.color = color;
@@ -100,6 +109,10 @@ impl ComboboxBundle {
             collision_groups: CollisionGroups::new(0, 0),
             velocity: Velocity::default(),
             point_light,
+            friction: Friction {
+                coefficient: 0.9,
+                ..default()
+            },
         }
     }
 }

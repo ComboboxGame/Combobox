@@ -79,7 +79,7 @@ fn update(
                 }
                 let t = (*current / (*period * 0.5)) % 2.0;
 
-                let t = ((if t < 1.0 { t } else { 2.0 - t } - 0.5) * 1.1 + 0.5).clamp(0.0, 1.0);
+                let t = ((if t < 1.0 { t } else { 2.0 - t } - 0.5) * 1.2 + 0.5).clamp(0.0, 1.0);
                 let t = t * t * (3.0 - 2.0 * t);
                 let p = elevator.start * (1.0 - t) + elevator.end * t;
                 transform.translation.x = p.x;

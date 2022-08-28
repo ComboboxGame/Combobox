@@ -3,7 +3,7 @@ use crate::utils::SceneDirection;
 use bevy::prelude::{Color, Vec2};
 
 pub fn setup(builder: &mut SceneBuilder) {
-    const INF: f32 = 50.0;
+    const INF: f32 = 60.0;
 
     builder.set_min_view_range(7.0);
 
@@ -69,12 +69,12 @@ pub fn setup(builder: &mut SceneBuilder) {
     builder.spawn_box_xy(undo, 25.5, -4.5);
 
     builder.spawn_elevator_xy(
-        34.0,
+        32.0,
         -7.0,
         26.0,
         -7.0,
         ElevatorType::Loop {
-            period: 4.0,
+            period: 5.0,
             current: 0.0,
         },
     );
@@ -82,4 +82,6 @@ pub fn setup(builder: &mut SceneBuilder) {
     builder.set_finish_point_xy(18.0, -2.0);
 
     builder.set_spawn_point_xy(1.5, -1.0, PlayerIndex::SinglePlayer);
+    builder.set_spawn_point_xy(1.5, -1.0, PlayerIndex::TwoPlayers(0));
+    builder.set_spawn_point_xy(3.5, -1.0, PlayerIndex::TwoPlayers(1));
 }

@@ -6,7 +6,8 @@ pub use door::*;
 pub use elevator::*;
 pub use player::*;
 
-use crate::core::{FinishPoint, FinishPointArrow};
+use crate::core::{FinishPoint, FinishPointArrow, Hint, Material};
+use crate::states::LevelState;
 use crate::utils::SceneDirection;
 
 pub mod collision_groups;
@@ -27,7 +28,8 @@ impl Plugin for SceneObjectsPlugin {
         app.add_plugin(DoorPlugin);
 
         app.add_system_to_stage(CoreStage::PreUpdate, clean_impulse);
-        app.add_system(move_finish_arrow);
+        app.add_system_set(SystemSet::on_update(LevelState::Level).with_system(move_finish_arrow));
+        app.add_system(show_hints);
     }
 }
 
@@ -54,5 +56,25 @@ fn move_finish_arrow(
             ((((time.seconds_since_startup() as f32 * 4.0).sin() + 1.0) * 0.5).powf(1.2) * 2.0
                 - 1.0)
                 * 15.0;
+    }
+}
+
+fn show_hints(
+    mut query: Query<(&GlobalTransform, &Handle<Material>), With<Hint>>,
+    players: Query<&GlobalTransform, With<Player>>,
+    mut materials: ResMut<Assets<Material>>,
+) {
+    for (t, m) in query.iter() {
+        let mut opacity: f32 = 0.0;
+        for pt in players.iter() {
+            let l: f32 = (t.translation() - pt.translation()).truncate().length();
+
+            let x = ((l - 100.0) / 80.0).max(0.0);
+            opacity = opacity.max((-x * x * 1.0).exp() - 0.005);
+        }
+
+        if let Some(material) = materials.get_mut(m) {
+            material.color = Color::rgba(1.0, 1.0, 1.0, opacity);
+        }
     }
 }

@@ -37,7 +37,7 @@ impl ElevatorBundle {
             collider: Collider::cuboid(w * 0.5, h * 0.5),
             mesh_bundle: MaterialMesh2dBundle {
                 mesh: Mesh2dHandle(meshes.add(Quad::new(Vec2::new(w, h)).into())),
-                material: materials.add(Color::BLUE.into()),
+                material: materials.add(Color::rgb_u8(33, 41, 36).into()),
                 transform: Transform::from_xyz(start.x, start.y, SceneBuilder::ELEVATOR_DEPTH),
                 ..MaterialMesh2dBundle::default()
             },

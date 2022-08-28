@@ -220,7 +220,18 @@ impl Combobox {
                     second
                         .combined_from
                         .iter()
-                        .map(|(c, v)| (c.clone(), *v * 1.9 + second_pos))
+                        .map(|(c, v)| {
+                            (
+                                c.clone(),
+                                *v * 1.1
+                                    + second_pos
+                                    + if v.length() > 5.0 {
+                                        v.normalize() * 10.0
+                                    } else {
+                                        Vec2::ZERO
+                                    },
+                            )
+                        })
                         .collect(),
                 );
             }

@@ -293,14 +293,6 @@ fn setup(
                             spawn_basic_button(
                                 parent,
                                 asset_server
-                                    .load("images/buttons/settings-button.png")
-                                    .into(),
-                                100.0,
-                                MainMenuButton::Settings,
-                            );
-                            spawn_basic_button(
-                                parent,
-                                asset_server
                                     .load("images/buttons/credits-button.png")
                                     .into(),
                                 100.0,

@@ -81,6 +81,7 @@ fn finish_level(
     time: Res<Time>,
     audio: Res<Audio>,
     assets: Res<AssetServer>,
+    mut ambient_light: ResMut<AmbientLight>,
 ) {
     let mut any_player_unfinished = false;
 
@@ -96,15 +97,18 @@ fn finish_level(
         }
     }
 
-    if !players.is_empty() && !any_player_unfinished {
+    if !players.is_empty()
+        && !any_player_unfinished
+        && *gui_state.current() != GuiState::LevelCompleted
+    {
         *timer += time.delta_seconds();
         if *timer > 1.0 {
             *timer = 0.0;
             audio.play(assets.load("audio/finish.ogg"));
-            level_state.set(LevelState::None).unwrap();
-            gui_state.set(GuiState::LevelSelection).unwrap();
-            camera_state.set(CameraState::None).unwrap();
-            audio_state.set(AudioState::None).unwrap();
+            gui_state.set(GuiState::LevelCompleted).unwrap();
+            ambient_light.color = Color::WHITE * 0.3;
+            //camera_state.set(CameraState::None).unwrap();
+            //audio_state.set(AudioState::None).unwrap();
         }
     } else {
         *timer = 0.0;

@@ -3,9 +3,9 @@ use crate::utils::SceneDirection;
 use bevy::prelude::Color;
 
 pub fn setup(builder: &mut SceneBuilder) {
-    const INF: f32 = 40.0;
+    const INF: f32 = 60.0;
 
-    builder.set_min_view_range(7.0);
+    builder.set_min_view_range(8.0);
     builder.set_ambient_light(Color::BLACK);
 
     builder.set_background_color(Color::rgb(0.03, 0.03, 0.03));
@@ -65,11 +65,11 @@ pub fn setup(builder: &mut SceneBuilder) {
                 color: Color::PURPLE * 2.0,
             },
         ),
-        9.5,
+        19.5,
         6.5,
     );
 
-    builder.spawn_box_xy(Combobox::new(1.0, ComboboxType::Buff(3.0)), 19.5, 6.5);
+    builder.spawn_box_xy(Combobox::new(1.0, ComboboxType::Buff(3.0)), 9.5, 6.5);
 
     // Upper buttons
     builder.spawn_button_xy(19.5, 12.5, SceneDirection::Up, 0);
@@ -97,6 +97,11 @@ pub fn setup(builder: &mut SceneBuilder) {
     );
 
     builder.set_spawn_point_xy(23.5, 1.0, PlayerIndex::SinglePlayer);
+    builder.set_spawn_point_xy(21.5, 1.0, PlayerIndex::TwoPlayers(0));
+    builder.set_spawn_point_xy(23.5, 1.0, PlayerIndex::TwoPlayers(1));
+
+    builder.spawn_hint_xy(15.5, 2.0, "images/enter-the-code.png");
+    builder.spawn_hint_xy(25.5, 9.5, "images/code.png");
 
     builder.set_finish_point_xy(27.0, 2.0);
 }

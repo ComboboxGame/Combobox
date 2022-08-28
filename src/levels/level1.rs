@@ -3,12 +3,19 @@ use bevy::prelude::Color;
 use crate::core::{Combobox, ComboboxType, PlayerIndex, SceneBuilder};
 
 pub fn setup(builder: &mut SceneBuilder) {
-    const INF: f32 = 40.0;
+    const INF: f32 = 60.0;
 
+    builder.set_min_view_range(8.0);
     builder.set_background_color(Color::rgb(0.03, 0.03, 0.03));
 
     // spawning player
     builder.set_spawn_point_xy(5.5, 1., PlayerIndex::SinglePlayer);
+    builder.set_spawn_point_xy(5.5, 1., PlayerIndex::TwoPlayers(0));
+    builder.set_spawn_point_xy(7.5, 1., PlayerIndex::TwoPlayers(1));
+
+    builder.spawn_hint_xy(4.0, 3.0, "images/controls.png");
+
+    builder.spawn_hint_xy(14.0, 1.5, "images/controls-2.png");
 
     // spawning walls
     // 1

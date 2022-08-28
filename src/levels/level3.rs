@@ -2,12 +2,15 @@ use crate::core::{Combobox, ComboboxType, ElevatorType, PlayerIndex, SceneBuilde
 use bevy::prelude::*;
 
 pub fn setup(builder: &mut SceneBuilder) {
-    const INF: f32 = 40.0;
+    const INF: f32 = 60.0;
 
     builder.set_background_color(Color::rgb(0.03, 0.03, 0.03));
 
     // spawning player
+    builder.set_min_view_range(8.0);
     builder.set_spawn_point_xy(21.5, 3., PlayerIndex::SinglePlayer);
+    builder.set_spawn_point_xy(20.5, 3., PlayerIndex::TwoPlayers(0));
+    builder.set_spawn_point_xy(21.2, 3., PlayerIndex::TwoPlayers(1));
 
     // spawning walls
     // 1
@@ -70,7 +73,7 @@ pub fn setup(builder: &mut SceneBuilder) {
         9.,
         5. - elevator_height,
         ElevatorType::Loop {
-            period: 4.,
+            period: 5.,
             current: 0.,
         },
     );
@@ -81,7 +84,7 @@ pub fn setup(builder: &mut SceneBuilder) {
         18.,
         5. - elevator_height,
         ElevatorType::Loop {
-            period: 4.,
+            period: 5.,
             current: 0.,
         },
     );

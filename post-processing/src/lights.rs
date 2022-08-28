@@ -14,12 +14,23 @@ pub struct AmbientLight {
     pub color: Color,
 }
 
-#[derive(ShaderType, Clone, Debug, Default)]
+#[derive(ShaderType, Clone, Debug)]
 pub struct PointLightsUniform {
     pub lights_num: u32,
     pub positions: [Vec4; 16],
     pub colors: [Vec4; 16],
     pub ambient: Vec4,
+}
+
+impl Default for PointLightsUniform {
+    fn default() -> Self {
+        Self {
+            lights_num: 0,
+            positions: [Vec4::ZERO; 16],
+            colors: [Vec4::ZERO; 16],
+            ambient: Vec4::new(30.0, 30.0, 30.0, 1.0),
+        }
+    }
 }
 
 pub fn update_lights(
@@ -28,6 +39,12 @@ pub fn update_lights(
     mut materials: ResMut<Assets<ColorMaterialCustom>>,
     ambient: Res<AmbientLight>,
 ) {
+    let v: Vec4 = ambient.color.into();
+    if v.truncate().length() > 10.0 && !ambient.is_changed() {
+        return;
+    }
+
+
     let mut lights = PointLightsUniform::default();
 
     lights.ambient = ambient.color.as_linear_rgba_f32().into();
@@ -44,6 +61,8 @@ pub fn update_lights(
     }
 
     for handle in handles.iter() {
-        materials.get_mut(handle).unwrap().lights = lights.clone();
+        if let Some(material) = materials.get_mut(handle) {
+            material.lights = lights.clone();
+        }
     }
 }

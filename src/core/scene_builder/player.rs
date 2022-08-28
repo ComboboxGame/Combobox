@@ -85,6 +85,7 @@ pub struct PlayerBundle {
     #[bundle]
     transform: TransformBundle,
     point_light: PointLight2d,
+    density: ColliderMassProperties,
 }
 
 impl PlayerBundle {
@@ -117,7 +118,6 @@ impl PlayerBundle {
         }
 
         player_states.current_state = 2;
-
         PlayerBundle {
             player,
             collider: player_states.get_current_bundle().0,
@@ -140,6 +140,7 @@ impl PlayerBundle {
                 SceneBuilder::PLAYER_DEPTH,
             )),
             material,
+            density: ColliderMassProperties::Density(2.0),
             ..default()
         }
     }

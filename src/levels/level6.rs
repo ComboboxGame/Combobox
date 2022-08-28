@@ -6,12 +6,15 @@ use crate::{
 };
 
 pub fn setup(builder: &mut SceneBuilder) {
-    const INF: f32 = 60.0;
+    const INF: f32 = 70.0;
 
     builder.set_background_color(Color::rgb(0.03, 0.03, 0.03));
 
     // spawning player
+    builder.set_min_view_range(8.0);
     builder.set_spawn_point_xy(4.5, 1., PlayerIndex::SinglePlayer);
+    builder.set_spawn_point_xy(4.5, 1., PlayerIndex::TwoPlayers(0));
+    builder.set_spawn_point_xy(6.5, 1., PlayerIndex::TwoPlayers(1));
 
     // spawning walls
     // 1
@@ -45,7 +48,7 @@ pub fn setup(builder: &mut SceneBuilder) {
     // 15
     builder.spawn_wall_from_to_xy(18., 22., 6., INF);
     // 16
-    builder.spawn_wall_from_to_xy(18., 24., 6., 11.);
+    builder.spawn_wall_from_to_xy(18.5, 24., 6., 11.);
     // 17
     builder.spawn_wall_from_to_xy(-INF, 22., 10., INF);
     // 18
@@ -64,6 +67,8 @@ pub fn setup(builder: &mut SceneBuilder) {
     builder.spawn_wall_from_to_xy(30., 31., 5., 7.);
     // 25
     builder.spawn_wall_from_to_xy(31., 32., 5., 6.);
+    // 26
+    builder.spawn_wall_from_to_xy(15.0, 19., 7., 12.);
 
     // spawning boxes
     // 1
@@ -102,14 +107,14 @@ pub fn setup(builder: &mut SceneBuilder) {
     builder.spawn_button_xy(26., 3.5, SceneDirection::Up, 2);
 
     // spawning elevators
-    let elevator_height = 0.1;
+    let elevator_height = 0.10;
     builder.spawn_elevator_xy(
         9.,
-        0. + elevator_height,
+        0. + elevator_height - 0.05,
         9.,
-        3. - elevator_height,
+        3. - elevator_height + 0.01,
         ElevatorType::Loop {
-            period: 3.,
+            period: 5.,
             current: 0.,
         },
     );
