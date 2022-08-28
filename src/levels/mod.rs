@@ -2,6 +2,7 @@ use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
 use bevy_kira_audio::{Audio, AudioControl};
 use bevy_rapier2d::plugin::RapierConfiguration;
+use post_processing::AmbientLight;
 
 use crate::core::{
     BackgroundMusic, FinishPoint, Material, Player, PlayerBundle, PlayerType, PlayersSettings,
@@ -159,6 +160,7 @@ fn setup(
     mut boundaries: ResMut<SceneBoundaries>,
     mut assets: ResMut<AssetServer>,
     mut config: ResMut<RapierConfiguration>,
+    mut ambient_light: ResMut<AmbientLight>,
     background_music: ResMut<BackgroundMusic>,
 ) {
     // Set map defaults
@@ -178,6 +180,7 @@ fn setup(
                 &mut *boundaries,
                 &mut *assets,
                 background_music,
+                ambient_light,
             );
             if current_level.level == 1 {
                 level1::setup(&mut builder);

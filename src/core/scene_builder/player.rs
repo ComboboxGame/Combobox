@@ -130,7 +130,7 @@ impl PlayerBundle {
                 combine_rule: CoefficientCombineRule::Min,
             },
             point_light: PointLight2d {
-                radius: 200.0,
+                radius: 150.0,
                 color: Color::WHITE,
             },
             transform: TransformBundle::from_transform(Transform::from_xyz(

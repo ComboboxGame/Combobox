@@ -56,7 +56,7 @@ impl ComboboxBundle {
 
         let point_light = match combobox.box_type {
             ComboboxType::Lamp { color } => PointLight2d {
-                radius: combobox.world_size() * 5.0,
+                radius: combobox.world_size() * 3.5,
                 color,
             },
             _ => PointLight2d::default(),

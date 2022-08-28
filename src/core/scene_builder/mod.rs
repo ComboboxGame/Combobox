@@ -1,6 +1,7 @@
 use bevy::prelude::shape::Quad;
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
+use post_processing::AmbientLight;
 
 use crate::core::Material;
 pub use boundaries::*;
@@ -29,6 +30,7 @@ pub struct SceneBuilder<'w, 's, 'a, 'b> {
     boundaries: &'b mut SceneBoundaries,
     wall_material: Handle<Material>,
     background_music: ResMut<'b, BackgroundMusic>,
+    ambient_light: ResMut<'b, AmbientLight>,
 }
 
 impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
@@ -48,8 +50,11 @@ impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
         boundaries: &'b mut SceneBoundaries,
         assets: &'b mut AssetServer,
         background_music: ResMut<'b, BackgroundMusic>,
+        mut ambient_light: ResMut<'b, AmbientLight>,
     ) -> SceneBuilder<'w, 's, 'a, 'b> {
         let wall_material = materials.add(Color::rgb(0.1, 0.1, 0.1).into());
+
+        ambient_light.color = Color::WHITE * 30.0;
 
         SceneBuilder {
             builder,
@@ -59,7 +64,12 @@ impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
             boundaries,
             assets,
             background_music,
+            ambient_light,
         }
+    }
+
+    pub fn set_ambient_light(&mut self, ambient_light: Color) {
+        self.ambient_light.color = ambient_light;
     }
 
     pub fn set_background_color(&mut self, color: Color) {

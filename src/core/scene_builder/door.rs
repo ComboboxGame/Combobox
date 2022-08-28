@@ -55,8 +55,8 @@ impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
         );
     }
 
-    pub fn spawn_button_xy(&mut self, x: f32, y: f32, direction: SceneDirection, index: u32) {
-        self.spawn_button(Vec2::new(x, y), direction, index);
+    pub fn spawn_button_xy(&mut self, x: f32, y: f32, direction: SceneDirection, mask: u32) {
+        self.spawn_button(Vec2::new(x, y), direction, mask);
     }
 
     pub fn spawn_button(&mut self, mut position: Vec2, direction: SceneDirection, mask: u32) {
