@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use bevy::render::RenderApp;
+use post_processing::AmbientLight;
 use std::env;
 
 use crate::core::CorePlugin;
@@ -26,6 +27,10 @@ impl Plugin for ComboboxGamePlugin {
             app.add_state(LevelState::None);
             app.add_state(CameraState::None);
         }
+
+        app.insert_resource(AmbientLight {
+            color: Color::WHITE * 30.0,
+        });
 
         app.add_startup_system(setup_camera);
         app.add_plugin(LevelPlugin);

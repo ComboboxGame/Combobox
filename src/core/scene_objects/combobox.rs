@@ -190,8 +190,8 @@ impl Combobox {
                     weight: second.weight,
                     box_type: second.box_type.clone(),
                     combined_from: vec![
-                        (first.clone(), first_offset),
-                        (second.clone(), second_offset),
+                        (first.clone(), first_pos - second_pos),
+                        (second.clone(), Vec2::ZERO),
                     ],
                     local_gravity: Some(direction.clone()),
                 };

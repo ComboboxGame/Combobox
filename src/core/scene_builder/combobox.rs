@@ -5,7 +5,10 @@ use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 use bevy_rapier2d::prelude::*;
 use post_processing::PointLight2d;
 
-use crate::core::{Combobox, ComboboxState, ComboboxType, Material, SceneBuilder};
+use crate::core::{
+    material_from_texture_and_emissive, Combobox, ComboboxState, ComboboxType, Material,
+    SceneBuilder,
+};
 
 #[derive(Bundle)]
 pub struct ComboboxBundle {
@@ -47,7 +50,7 @@ impl ComboboxBundle {
         };
 
         let overlay = match combobox.box_type {
-            ComboboxType::Undo => {Some(assets.load("images/overlay-undo.png"))}
+            ComboboxType::Undo => Some(assets.load("images/overlay-undo.png")),
             ComboboxType::Direction { direction } => {
                 if direction.y > 0.5 {
                     Some(assets.load("images/overlay-up.png"))
@@ -58,9 +61,9 @@ impl ComboboxBundle {
                 } else {
                     Some(assets.load("images/overlay-right.png"))
                 }
-            },
-            ComboboxType::Gravity => {Some(assets.load("images/overlay-gravity.png"))}
-            _ => {None}
+            }
+            ComboboxType::Gravity => Some(assets.load("images/overlay-gravity.png")),
+            _ => None,
         };
 
         let image = match combobox.box_type {
@@ -68,7 +71,7 @@ impl ComboboxBundle {
             _ => assets.load("images/box-default-2.png"),
         };
 
-        let mut material = Material::from((image, None, overlay));
+        let mut material = material_from_texture_and_emissive(image, None, overlay);
         material.color = color;
 
         let point_light = match combobox.box_type {
