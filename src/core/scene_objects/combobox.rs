@@ -185,7 +185,7 @@ impl Combobox {
                 };
                 return Some(vec![(buffed_box, second_pos)]);
             }
-            (ComboboxType::Direction { direction }, ComboboxType::Standard { .. }) => {
+            (ComboboxType::Direction { direction }, ComboboxType::Standard { .. } | ComboboxType::Lamp { .. }) => {
                 let direction_box = Combobox {
                     weight: second.weight,
                     box_type: second.box_type.clone(),
@@ -237,7 +237,7 @@ impl Combobox {
             }
             (_, ComboboxType::Undo)
             | (ComboboxType::Standard { .. } | ComboboxType::Lamp { .. }, ComboboxType::Buff(_))
-            | (ComboboxType::Standard { .. }, ComboboxType::Direction { .. })
+            | (ComboboxType::Standard { .. } | ComboboxType::Lamp {..}, ComboboxType::Direction { .. })
             | (ComboboxType::Direction { .. }, ComboboxType::Gravity) => {
                 Self::merge(second, second_pos, first, first_pos)
             }
