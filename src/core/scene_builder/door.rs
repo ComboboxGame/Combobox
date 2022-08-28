@@ -60,23 +60,29 @@ impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
     }
 
     pub fn spawn_button(&mut self, mut position: Vec2, direction: SceneDirection, mask: u32) {
-        let size_y = direction.get_vec() * 3.0;
-        let size_x = direction.get_perp().get_vec() * 40.0;
+        let size_y = direction.get_vec() * 55.0 * 3.0 / 20.0;
+        let size_x = direction.get_perp().get_vec() * 55.0;
         let size = (size_y + size_x).abs();
 
         position *= Self::CELL_SIZE;
 
-        position -= direction.get_vec() * (Self::CELL_SIZE - 3.0) * 0.5;
+        position -= direction.get_vec() * (Self::CELL_SIZE - 1.0) * 0.5;
 
         self.builder
             .spawn()
             .insert_bundle(MaterialMesh2dBundle {
                 mesh: Mesh2dHandle(self.meshes.add(Quad::new(size).into())),
-                material: self.materials.add(Color::RED.into()),
+                material: self.button_off.clone(),
                 transform: Transform::from_xyz(position.x, position.y, Self::DOOR_DEPTH),
                 ..MaterialMesh2dBundle::default()
             })
-            .insert(DoorButton { mask, direction });
+            .insert(DoorButton {
+                mask,
+                direction,
+                button_on: self.button_on.clone(),
+                button_off: self.button_off.clone(),
+                enabled: false,
+            });
     }
 
     pub fn spawn_door(

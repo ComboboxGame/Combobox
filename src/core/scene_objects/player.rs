@@ -37,8 +37,8 @@ impl MoveKeyGroups {
 
     pub fn get_grab_key(&self) -> KeyCode {
         match *self {
-            MoveKeyGroups::WASD => KeyCode::LControl,
-            MoveKeyGroups::Arrows => KeyCode::RControl,
+            MoveKeyGroups::WASD => KeyCode::LShift,
+            MoveKeyGroups::Arrows => KeyCode::RShift,
         }
     }
 }

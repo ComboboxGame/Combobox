@@ -23,14 +23,20 @@ impl ElevatorBundle {
         materials: &mut Assets<Material>,
     ) -> Self {
         let start = elevator.start.clone();
+        let dir = (elevator.end - elevator.start).normalize();
+
+        let (w, h) = if dir.dot(Vec2::Y).abs() > 0.8 {
+            (Elevator::WIDTH, Elevator::HEIGHT)
+        } else {
+            (Elevator::HEIGHT, Elevator::WIDTH)
+        };
+
         ElevatorBundle {
             elevator,
             rigid_body: RigidBody::KinematicPositionBased,
-            collider: Collider::cuboid(Elevator::WIDTH * 0.5, Elevator::HEIGHT * 0.5),
+            collider: Collider::cuboid(w * 0.5, h * 0.5),
             mesh_bundle: MaterialMesh2dBundle {
-                mesh: Mesh2dHandle(
-                    meshes.add(Quad::new(Vec2::new(Elevator::WIDTH, Elevator::HEIGHT)).into()),
-                ),
+                mesh: Mesh2dHandle(meshes.add(Quad::new(Vec2::new(w, h)).into())),
                 material: materials.add(Color::BLUE.into()),
                 transform: Transform::from_xyz(start.x, start.y, SceneBuilder::ELEVATOR_DEPTH),
                 ..MaterialMesh2dBundle::default()

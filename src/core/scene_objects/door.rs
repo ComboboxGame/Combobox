@@ -1,3 +1,4 @@
+use crate::core::Material;
 use crate::states::LevelState;
 use crate::utils::SceneDirection;
 use bevy::prelude::*;
@@ -17,6 +18,9 @@ pub struct Door {
 pub struct DoorButton {
     pub mask: u32,
     pub direction: SceneDirection,
+    pub button_off: Handle<Material>,
+    pub button_on: Handle<Material>,
+    pub enabled: bool,
 }
 
 pub struct DoorPlugin;
@@ -28,24 +32,46 @@ impl Plugin for DoorPlugin {
 }
 
 fn update(
+    mut commands: Commands,
     mut doors: Query<(Entity, &mut Transform, &mut Door)>,
-    buttons: Query<(&Transform, &DoorButton), Without<Door>>,
+    mut buttons: Query<(Entity, &Transform, &mut DoorButton), Without<Door>>,
     time: Res<Time>,
     context: Res<RapierContext>,
+    materials: ResMut<Assets<Material>>,
 ) {
     let mut pressed_buttons = 0;
 
-    for (transform, button) in buttons.iter() {
-        if context
+    for (entity, transform, mut button) in buttons.iter_mut() {
+        let enabled = context
             .cast_ray(
-                transform.translation.truncate(),
-                Vec2::Y,
-                1.0,
+                transform.translation.truncate() + button.direction.get_perp().get_vec() * 15.0,
+                button.direction.get_vec(),
+                10.0,
                 true,
                 QueryFilter::new(),
             )
             .is_some()
-        {
+            || context
+                .cast_ray(
+                    transform.translation.truncate() - button.direction.get_perp().get_vec() * 15.0,
+                    button.direction.get_vec(),
+                    10.0,
+                    true,
+                    QueryFilter::new(),
+                )
+                .is_some();
+
+        if enabled != button.enabled {
+            println!("Enabled!");
+            button.enabled = enabled;
+            commands.entity(entity).insert(if enabled {
+                button.button_on.clone()
+            } else {
+                button.button_off.clone()
+            });
+        }
+
+        if enabled {
             pressed_buttons |= button.mask;
         }
     }

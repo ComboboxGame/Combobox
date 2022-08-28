@@ -31,6 +31,8 @@ pub struct SceneBuilder<'w, 's, 'a, 'b> {
     wall_material: Handle<Material>,
     background_music: ResMut<'b, BackgroundMusic>,
     ambient_light: ResMut<'b, AmbientLight>,
+    button_on: Handle<Material>,
+    button_off: Handle<Material>,
 }
 
 impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
@@ -56,6 +58,9 @@ impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
 
         ambient_light.color = Color::WHITE * 30.0;
 
+        let button_off = materials.add(Material::from(assets.load("images/button.png")));
+        let button_on = materials.add(Material::from(assets.load("images/button-on.png")));
+
         SceneBuilder {
             builder,
             meshes,
@@ -65,6 +70,8 @@ impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
             assets,
             background_music,
             ambient_light,
+            button_on,
+            button_off,
         }
     }
 
