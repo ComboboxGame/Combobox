@@ -4,6 +4,7 @@ use crate::utils::SceneDirection;
 use bevy::prelude::*;
 use bevy_rapier2d::plugin::RapierContext;
 use bevy_rapier2d::prelude::*;
+use crate::core::collision_groups::ELEVATOR_I;
 
 #[derive(Component, Debug, Clone)]
 pub struct Door {
@@ -33,7 +34,7 @@ impl Plugin for DoorPlugin {
 
 fn update(
     mut commands: Commands,
-    mut doors: Query<(Entity, &mut Transform, &mut Door)>,
+    mut doors: Query<(Entity, &mut Transform, &mut Door, &GlobalTransform)>,
     mut buttons: Query<(Entity, &Transform, &mut DoorButton), Without<Door>>,
     time: Res<Time>,
     context: Res<RapierContext>,
@@ -76,7 +77,7 @@ fn update(
         }
     }
 
-    for (_entity, mut transform, mut door) in doors.iter_mut() {
+    for (_entity, mut transform, mut door, g_transform) in doors.iter_mut() {
         let mut opening = true;
 
         if (door.pressed_mask & pressed_buttons) != door.pressed_mask {
@@ -90,7 +91,21 @@ fn update(
         if opening {
             door.progress += time.delta_seconds();
         } else {
-            door.progress -= time.delta_seconds();
+            if context.cast_ray(
+                g_transform.translation().truncate() + door.direction.get_perp().get_vec() * 13.0,
+                door.direction.get_opposite().get_vec(),
+                door.height * 0.52,
+                true,
+                QueryFilter::new().groups(ELEVATOR_I),
+            ).is_none() && context.cast_ray(
+                g_transform.translation().truncate() - door.direction.get_perp().get_vec() * 13.0,
+                door.direction.get_opposite().get_vec(),
+                door.height * 0.52,
+                true,
+                QueryFilter::new().groups(ELEVATOR_I),
+            ).is_none() {
+                door.progress -= time.delta_seconds();
+            }
         }
         door.progress = door.progress.clamp(0.0, 1.0);
 

@@ -38,16 +38,18 @@ fn update(
         let mut anything_below = false;
         let mut anything_and_interacts = false;
 
-        let intervals = 8;
+        let intervals = 6;
+
+        let direction_down = (elevator.start - elevator.end).normalize();
 
         for i in 0..intervals {
             let origin = transform.translation.truncate()
-                + Vec2::X * Elevator::WIDTH * ((i as f32 / (intervals - 1) as f32) - 0.5);
+                + direction_down.perp() * Elevator::WIDTH * ((i as f32 / (intervals - 1) as f32) - 0.5);
             let query_filter = QueryFilter::new().groups(collision_groups::ELEVATOR_I);
 
             if let Some((_, v)) = context.cast_ray(
                 origin,
-                Vec2::NEG_Y,
+                direction_down,
                 Elevator::HEIGHT * 0.7,
                 true,
                 query_filter,

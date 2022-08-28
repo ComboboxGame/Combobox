@@ -46,13 +46,30 @@ impl ComboboxBundle {
             ComboboxType::Lamp { color } => color * 2.5,
         };
 
+        let overlay = match combobox.box_type {
+            ComboboxType::Undo => {Some(assets.load("images/overlay-undo.png"))}
+            ComboboxType::Direction { direction } => {
+                if direction.y > 0.5 {
+                    Some(assets.load("images/overlay-up.png"))
+                } else if direction.y < -0.5 {
+                    Some(assets.load("images/overlay-down.png"))
+                } else if direction.x < -0.5 {
+                    Some(assets.load("images/overlay-left.png"))
+                } else {
+                    Some(assets.load("images/overlay-right.png"))
+                }
+            },
+            ComboboxType::Gravity => {Some(assets.load("images/overlay-gravity.png"))}
+            _ => {None}
+        };
+
         let image = match combobox.box_type {
             ComboboxType::Buff(_) => assets.load("images/box-default-3.png"),
             _ => assets.load("images/box-default-2.png"),
         };
 
-        let mut material = Material::from(color);
-        material.texture = Some(image);
+        let mut material = Material::from((image, None, overlay));
+        material.color = color;
 
         let point_light = match combobox.box_type {
             ComboboxType::Lamp { color } => PointLight2d {

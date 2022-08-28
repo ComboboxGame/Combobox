@@ -46,6 +46,10 @@ pub struct ColorMaterialCustom {
     #[texture(3)]
     #[sampler(4)]
     pub emissive: Option<Handle<Image>>,
+
+    #[texture(5)]
+    #[sampler(6)]
+    pub overlay: Option<Handle<Image>>,
 }
 
 impl Default for ColorMaterialCustom {
@@ -55,6 +59,7 @@ impl Default for ColorMaterialCustom {
             lights: PointLightsUniform::default(),
             texture: None,
             emissive: None,
+            overlay: None,
         }
     }
 }
@@ -77,11 +82,12 @@ impl From<Handle<Image>> for ColorMaterialCustom {
     }
 }
 
-impl From<(Handle<Image>, Handle<Image>)> for ColorMaterialCustom {
-    fn from(texture: (Handle<Image>, Handle<Image>)) -> Self {
+impl From<(Handle<Image>, Option<Handle<Image>>, Option<Handle<Image>>)> for ColorMaterialCustom {
+    fn from(texture: (Handle<Image>, Option<Handle<Image>>, Option<Handle<Image>>)) -> Self {
         ColorMaterialCustom {
             texture: Some(texture.0),
-            emissive: Some(texture.1),
+            emissive: texture.1,
+            overlay: texture.2,
             ..Default::default()
         }
     }
@@ -101,6 +107,7 @@ bitflags::bitflags! {
     pub struct ColorMaterialFlagsCustom: u32 {
         const TEXTURE           = (1 << 0);
         const EMISSIVE           = (1 << 1);
+        const OVERLAY           = (1 << 2);
         const NONE              = 0;
         const UNINITIALIZED     = 0xFFFF;
     }
@@ -117,6 +124,9 @@ impl AsBindGroupShaderType<ColorMaterialCustomUniform> for ColorMaterialCustom {
         }
         if self.emissive.is_some() {
             flags |= ColorMaterialFlagsCustom::EMISSIVE;
+        }
+        if self.overlay.is_some() {
+            flags |= ColorMaterialFlagsCustom::OVERLAY;
         }
 
         ColorMaterialCustomUniform {

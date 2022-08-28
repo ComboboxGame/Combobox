@@ -22,7 +22,7 @@ pub fn setup(builder: &mut SceneBuilder) {
     builder.spawn_wall_from_to_xy(13.0, 29.0, 0.0, 2.0);
 
     // 11 - 15
-    builder.spawn_wall_from_to_xy(21.0, 23.0, 0.0, 6.0);
+    builder.spawn_wall_from_to_xy(21.0, 23.0, 0.0, 5.4);
     builder.spawn_wall_from_to_xy(23.0, 29.0, 2.0, 4.0);
     builder.spawn_wall_from_to_xy(21.0, 23.0, 8.0, 14.0);
     builder.spawn_wall_from_to_xy(20.0, INF, 11.0, INF);

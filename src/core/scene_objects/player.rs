@@ -292,7 +292,7 @@ fn grab(
                     gravity_direction,
                     transform.translation().truncate(),
                     &context,
-                    [0.45, 0.55],
+                    [0.46, 0.52],
                 );
 
                 if let Some((e, d)) = collider {
@@ -300,8 +300,8 @@ fn grab(
                         if let Ok((t, c)) = boxes.get(e) {
                             let mut offset = (t.translation() - transform.translation()).truncate();
 
-                            let dist = gravity_direction.get_perp().get_vec().dot(offset).abs();
-                            let target_dist = (player.width + c.world_size()) * 0.5;
+                            let dist = gravity_direction.get_perp().get_vec().dot(offset);
+                            let target_dist = (player.width + c.world_size()) * 0.5 * dist.signum();
 
                             offset += (target_dist - dist) * gravity_direction.get_perp().get_vec();
 
@@ -318,8 +318,18 @@ fn grab(
             }
         }
 
+
         if keys.any_just_released(player.get_buttons_grab()) {
             commands.entity(entity).remove::<ImpulseJoint>();
+        }
+
+        if let Some(joint) = maybe_joint {
+            if let Ok((t, _)) = boxes.get(joint.parent) {
+                let dist_real = ((t.translation() - transform.translation()).truncate()).length();
+                if dist_real > joint.data.local_anchor2().length() * 1.05 {
+                    commands.entity(entity).remove::<ImpulseJoint>();
+                }
+            }
         }
     }
 }
@@ -330,30 +340,70 @@ fn move_player(
         &Velocity,
         &ReadMassProperties,
         &mut Player,
-        Option<&ImpulseJoint>,
+        Option<&mut ImpulseJoint>,
     )>,
+    mut boxes: Query<(&mut Transform, &Combobox)>,
     keys: Res<Input<KeyCode>>,
     time: Res<Time>,
+    context: Res<RapierContext>,
     config: ResMut<RapierConfiguration>,
 ) {
     let gravity_direction = SceneDirection::from_gravity_direction(&*config);
 
-    for (mut impulse, velocity, mass, mut player, maybe_joint) in players.iter_mut() {
+    for (mut impulse, velocity, mass, mut player, mut maybe_joint) in players.iter_mut() {
         let mut target_velocity = 0.0;
 
         let mut moving = false;
 
+        let right = gravity_direction.get_perp().get_vec();
+        let mut dir = Vec2::ZERO;
+
         if keys.any_pressed(player.get_buttons_left(gravity_direction)) {
             target_velocity -= player.max_speed;
             moving = true;
+            dir = -right;
         }
 
         if keys.any_pressed(player.get_buttons_right(gravity_direction)) {
             target_velocity += player.max_speed;
             moving = true;
+            dir = right;
         }
 
-        let right = gravity_direction.get_perp().get_vec();
+        //let mut maybe_joint : Option<&mut ImpulseJoint> = maybe_joint;
+        if let Some(mut joint) = maybe_joint.as_mut() {
+            let proj = dir.dot(joint.data.local_anchor2());
+            if proj < -0.1 {
+                // Turn the box!
+                if let Ok((mut transform, combobox)) = boxes.get_mut(joint.parent) {
+
+                    // Here we should check that box can be safely turned around player
+                    let mut ok = true;
+
+                    let offset = proj * dir * -2.0;
+
+                    for dxy in [Vec2::new(-0.45, -0.45), Vec2::new(0.45, -0.45), Vec2::new(-0.45, 0.45), Vec2::new(0.45, 0.45), Vec2::new(0.0, 0.0)] {
+                        if context.cast_ray(
+                            transform.translation.truncate() + dxy * combobox.world_size() + offset,
+                            Vec2::Y,
+                            0.5,
+                            true,
+                            QueryFilter::new()
+                        ).is_some() {
+                            ok = false;
+                            break;
+                        }
+                    }
+
+                    if ok {
+                        transform.translation += offset.extend(0.0);
+                        let anchor2 = joint.data.local_anchor2() + offset;
+                        joint.data.set_local_anchor2(anchor2);
+                    }
+                }
+            }
+        }
+
         player.is_moving = moving;
 
         let delta_velocity = target_velocity - velocity.linvel.dot(right);
@@ -398,7 +448,7 @@ fn jump_player(
                 gravity_direction,
                 transform.translation().truncate(),
                 &context,
-                [0.05, 0.95],
+                [0.1, 0.9],
             );
 
             if let Some((_, dist)) = collider_below {
@@ -446,13 +496,15 @@ fn update_rect_state(
         if rect_state.current_state < 4 {
             if rect_state.current_state % 2 == 0 {
                 rect_state.current_state = 2;
-                if let Some((_, d)) = player.find_obstacle(
+                if keys.any_pressed(player.get_buttons_grab()) {
+                    rect_state.current_state = 0;
+                } else if let Some((_, d)) = player.find_obstacle(
                     entity,
                     gravity_direction.get_perp().get_opposite(),
                     gravity_direction,
                     transform.translation().truncate(),
                     &context,
-                    [0.05, 0.95],
+                    [0.1, 0.9],
                 ) {
                     if d < 1.0 {
                         rect_state.current_state = 0;
@@ -460,13 +512,15 @@ fn update_rect_state(
                 }
             } else {
                 rect_state.current_state = 3;
-                if let Some((_, d)) = player.find_obstacle(
+                if keys.any_pressed(player.get_buttons_grab()) {
+                    rect_state.current_state = 1;
+                } else if let Some((_, d)) = player.find_obstacle(
                     entity,
                     gravity_direction.get_perp(),
                     gravity_direction,
                     transform.translation().truncate(),
                     &context,
-                    [0.05, 0.95],
+                    [0.1, 0.9],
                 ) {
                     if d < 1.0 {
                         rect_state.current_state = 1;

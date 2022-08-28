@@ -21,7 +21,7 @@ pub fn setup(builder: &mut SceneBuilder) {
     builder.spawn_wall_from_to_xy(5.0, 6.0, 5.0, 6.5);
 
     // 5 - 10
-    builder.spawn_wall_from_to_xy(4.0, 5.0, 4.0, 4.5);
+    builder.spawn_wall_from_to_xy(4.0, 5.0, 4.0, 4.6);
     builder.spawn_wall_from_to_xy(-INF, 7.0, 10.0, INF);
     builder.spawn_wall_from_to_xy(22.0, INF, 10.0, INF);
     builder.spawn_wall_from_to_xy(30.0, INF, -INF, INF);

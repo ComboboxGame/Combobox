@@ -98,7 +98,8 @@ impl PlayerBundle {
         let mut player_states = PlayerRectState::default();
         let material = materials.add(material_from_texture_and_emissive(
             asset_server.load(player_type.get_states_image().as_str()),
-            asset_server.load("images/robot-states-emissive.png"),
+            Some(asset_server.load("images/robot-states-emissive.png")),
+            None,
         ));
 
         let player = Player { index, ..default() };
@@ -107,9 +108,9 @@ impl PlayerBundle {
             player_states.states.push([0, 1, 2, 3].map(|rot| {
                 let mesh = create_quad(Vec2::new(player.width, player.height) * 0.5, state, 5, rot);
                 let collider = if rot % 2 == 0 {
-                    Collider::cuboid(player.width * 0.5, player.height * 0.5)
+                    Collider::cuboid(player.width * 0.5 * 0.9, player.height * 0.5)
                 } else {
-                    Collider::cuboid(player.height * 0.5, player.width * 0.5)
+                    Collider::cuboid(player.height * 0.5, player.width * 0.5 * 0.9)
                 };
                 (collider, Mesh2dHandle(meshes.add(mesh)))
             }))

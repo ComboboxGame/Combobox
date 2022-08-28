@@ -20,6 +20,7 @@ struct ColorMaterial {
 
 let COLOR_MATERIAL_FLAGS_TEXTURE_BIT: u32 = 1u;
 let COLOR_MATERIAL_FLAGS_EMISSIVE_BIT: u32 = 2u;
+let COLOR_MATERIAL_FLAGS_OVERLAY_BIT: u32 = 4u;
 
 @group(1) @binding(0)
 var<uniform> material: ColorMaterial;
@@ -31,6 +32,10 @@ var texture_sampler: sampler;
 var emissive: texture_2d<f32>;
 @group(1) @binding(4)
 var emissive_sampler: sampler;
+@group(1) @binding(5)
+var overlay: texture_2d<f32>;
+@group(1) @binding(6)
+var overlay_sampler: sampler;
 
 @group(2) @binding(0)
 var<uniform> mesh: Mesh2d;
@@ -62,6 +67,10 @@ fn fragment(in: FragmentInput) -> @location(0) vec4<f32> {
 #else
         output_color = output_color * texture_color;
 #endif
+        if ((material.flags & COLOR_MATERIAL_FLAGS_OVERLAY_BIT) != 0u) {
+            let overlay = textureSample(overlay, overlay_sampler, in.uv);
+            output_color = vec4(output_color.rgb * (1.0 - overlay.w) + overlay.rgb * overlay.w, output_color.w);
+        }
     }
 
     if (output_color.a < 0.01) {
