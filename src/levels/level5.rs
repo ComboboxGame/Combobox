@@ -1,7 +1,7 @@
 use bevy::prelude::Color;
 
 use crate::{
-    core::{Combobox, ComboboxType, SceneBuilder, PlayerIndex},
+    core::{Combobox, ComboboxType, PlayerIndex, SceneBuilder},
     utils::SceneDirection,
 };
 

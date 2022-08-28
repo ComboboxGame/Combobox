@@ -50,7 +50,11 @@ pub fn setup(builder: &mut SceneBuilder) {
 
     // spawning boxes
     // 1
-    builder.spawn_box_xy(Combobox::new(1., ComboboxType::Standard { group: 1 }), 6.5, 1.5);
+    builder.spawn_box_xy(
+        Combobox::new(1., ComboboxType::Standard { group: 1 }),
+        6.5,
+        1.5,
+    );
     // 2
     builder.spawn_box_xy(
         Combobox::new(1., ComboboxType::Standard { group: 1 }),
@@ -58,11 +62,7 @@ pub fn setup(builder: &mut SceneBuilder) {
         1.5,
     );
     // 3
-    builder.spawn_box_xy(
-        Combobox::new(1., ComboboxType::Buff(3.)),
-        7.5,
-        5.5,
-    );
+    builder.spawn_box_xy(Combobox::new(1., ComboboxType::Buff(3.)), 7.5, 5.5);
     // 4
     builder.spawn_box_xy(
         Combobox::new(1., ComboboxType::Standard { group: 1 }),
@@ -70,11 +70,7 @@ pub fn setup(builder: &mut SceneBuilder) {
         7.,
     );
     // 5
-    builder.spawn_box_xy(
-        Combobox::new(1., ComboboxType::Buff(3.)),
-        20.,
-        8.5,
-    );
+    builder.spawn_box_xy(Combobox::new(1., ComboboxType::Buff(3.)), 20., 8.5);
 
     // spawning finish
     builder.set_finish_point_xy(29., 8.5);

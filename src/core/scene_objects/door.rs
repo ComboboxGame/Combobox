@@ -1,10 +1,10 @@
+use crate::core::collision_groups::ELEVATOR_I;
 use crate::core::Material;
 use crate::states::LevelState;
 use crate::utils::SceneDirection;
 use bevy::prelude::*;
 use bevy_rapier2d::plugin::RapierContext;
 use bevy_rapier2d::prelude::*;
-use crate::core::collision_groups::ELEVATOR_I;
 
 #[derive(Component, Debug, Clone)]
 pub struct Door {
@@ -63,7 +63,6 @@ fn update(
                 .is_some();
 
         if enabled != button.enabled {
-            println!("Enabled!");
             button.enabled = enabled;
             commands.entity(entity).insert(if enabled {
                 button.button_on.clone()
@@ -91,19 +90,27 @@ fn update(
         if opening {
             door.progress += time.delta_seconds();
         } else {
-            if context.cast_ray(
-                g_transform.translation().truncate() + door.direction.get_perp().get_vec() * 13.0,
-                door.direction.get_opposite().get_vec(),
-                door.height * 0.52,
-                true,
-                QueryFilter::new().groups(ELEVATOR_I),
-            ).is_none() && context.cast_ray(
-                g_transform.translation().truncate() - door.direction.get_perp().get_vec() * 13.0,
-                door.direction.get_opposite().get_vec(),
-                door.height * 0.52,
-                true,
-                QueryFilter::new().groups(ELEVATOR_I),
-            ).is_none() {
+            if context
+                .cast_ray(
+                    g_transform.translation().truncate()
+                        + door.direction.get_perp().get_vec() * 13.0,
+                    door.direction.get_opposite().get_vec(),
+                    door.height * 0.52,
+                    true,
+                    QueryFilter::new().groups(ELEVATOR_I),
+                )
+                .is_none()
+                && context
+                    .cast_ray(
+                        g_transform.translation().truncate()
+                            - door.direction.get_perp().get_vec() * 13.0,
+                        door.direction.get_opposite().get_vec(),
+                        door.height * 0.52,
+                        true,
+                        QueryFilter::new().groups(ELEVATOR_I),
+                    )
+                    .is_none()
+            {
                 door.progress -= time.delta_seconds();
             }
         }

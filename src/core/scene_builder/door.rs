@@ -73,7 +73,8 @@ impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
             .insert_bundle(MaterialMesh2dBundle {
                 mesh: Mesh2dHandle(self.meshes.add(Quad::new(size).into())),
                 material: self.button_off.clone(),
-                transform: Transform::from_xyz(position.x, position.y, Self::DOOR_DEPTH),
+                transform: Transform::from_xyz(position.x, position.y, Self::DOOR_DEPTH)
+                    .with_rotation(Quat::from_rotation_arc_2d(Vec2::Y, direction.get_vec())),
                 ..MaterialMesh2dBundle::default()
             })
             .insert(DoorButton {

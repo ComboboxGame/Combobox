@@ -1,6 +1,6 @@
 use bevy::prelude::Color;
 
-use crate::core::{Combobox, ComboboxType, SceneBuilder, PlayerIndex};
+use crate::core::{Combobox, ComboboxType, PlayerIndex, SceneBuilder};
 
 pub fn setup(builder: &mut SceneBuilder) {
     const INF: f32 = 40.0;

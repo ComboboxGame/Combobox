@@ -318,7 +318,6 @@ fn grab(
             }
         }
 
-
         if keys.any_just_released(player.get_buttons_grab()) {
             commands.entity(entity).remove::<ImpulseJoint>();
         }
@@ -376,20 +375,30 @@ fn move_player(
             if proj < -0.1 {
                 // Turn the box!
                 if let Ok((mut transform, combobox)) = boxes.get_mut(joint.parent) {
-
                     // Here we should check that box can be safely turned around player
                     let mut ok = true;
 
                     let offset = proj * dir * -2.0;
 
-                    for dxy in [Vec2::new(-0.45, -0.45), Vec2::new(0.45, -0.45), Vec2::new(-0.45, 0.45), Vec2::new(0.45, 0.45), Vec2::new(0.0, 0.0)] {
-                        if context.cast_ray(
-                            transform.translation.truncate() + dxy * combobox.world_size() + offset,
-                            Vec2::Y,
-                            0.5,
-                            true,
-                            QueryFilter::new()
-                        ).is_some() {
+                    for dxy in [
+                        Vec2::new(-0.45, -0.45),
+                        Vec2::new(0.45, -0.45),
+                        Vec2::new(-0.45, 0.45),
+                        Vec2::new(0.45, 0.45),
+                        Vec2::new(0.0, 0.0),
+                    ] {
+                        if context
+                            .cast_ray(
+                                transform.translation.truncate()
+                                    + dxy * combobox.world_size()
+                                    + offset,
+                                Vec2::Y,
+                                0.5,
+                                true,
+                                QueryFilter::new(),
+                            )
+                            .is_some()
+                        {
                             ok = false;
                             break;
                         }

@@ -109,7 +109,7 @@ pub fn setup(builder: &mut SceneBuilder) {
         9.,
         3. - elevator_height,
         ElevatorType::Loop {
-            period: 9.,
+            period: 3.,
             current: 0.,
         },
     );
