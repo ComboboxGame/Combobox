@@ -69,7 +69,7 @@ pub fn setup(builder: &mut SceneBuilder) {
     builder.spawn_box_xy(undo, 25.5, -4.5);
 
     builder.spawn_elevator_xy(
-        32.0,
+        34.0,
         -7.0,
         26.0,
         -7.0,

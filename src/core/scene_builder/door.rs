@@ -28,7 +28,7 @@ impl DoorBundle {
             collider: Collider::cuboid(size.x * 0.5, size.y * 0.5),
             mesh_bundle: MaterialMesh2dBundle {
                 mesh: Mesh2dHandle(meshes.add(Quad::new(size).into())),
-                material: materials.add(Color::DARK_GREEN.into()),
+                material: materials.add(Color::rgb_u8(33, 41, 36).into()),
                 ..MaterialMesh2dBundle::default()
             },
             collision_groups: collision_groups::ELEVATOR,

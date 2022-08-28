@@ -37,7 +37,7 @@ pub struct SceneBuilder<'w, 's, 'a, 'b> {
 
 impl<'w, 's, 'a, 'b> SceneBuilder<'w, 's, 'a, 'b> {
     pub const BACKGROUND_DEPTH: f32 = -2.9;
-    pub const WALL_DEPTH: f32 = -0.8;
+    pub const WALL_DEPTH: f32 = -0.4;
     pub const ELEVATOR_DEPTH: f32 = -0.7;
     pub const DOOR_DEPTH: f32 = -0.6;
     pub const PLAYER_DEPTH: f32 = -0.2;

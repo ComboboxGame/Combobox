@@ -34,15 +34,15 @@ impl ComboboxBundle {
         let color = match combobox.box_type {
             ComboboxType::Standard { group } => {
                 if group == 1 {
-                    Color::rgb_u8(87, 255, 162)
+                    Color::rgb_u8(252, 230, 119)
                 } else {
-                    Color::rgb_u8(255, 87, 162)
+                    Color::rgb_u8(105, 214, 250)
                 }
             }
-            ComboboxType::Buff(_) => Color::CYAN,
-            ComboboxType::Undo => Color::rgb_u8(152, 88, 255),
-            ComboboxType::Gravity => Color::rgb_u8(211, 42, 42),
-            ComboboxType::Direction { .. } => Color::rgb_u8(255, 182, 193),
+            ComboboxType::Buff(_) => Color::rgb_u8(50, 91, 227),
+            ComboboxType::Undo => Color::rgb_u8(141, 50, 227),
+            ComboboxType::Gravity => Color::rgb_u8(232, 67, 56),
+            ComboboxType::Direction { .. } => Color::rgb_u8(29, 196, 91),
             ComboboxType::Lamp { color } => color * 2.5,
         };
 
