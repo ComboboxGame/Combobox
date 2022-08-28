@@ -1,5 +1,4 @@
-use crate::core::{Combobox, ComboboxType, PlayerIndex, SceneBuilder};
-use crate::utils::SceneDirection;
+use crate::core::{Combobox, ComboboxType, ElevatorType, PlayerIndex, SceneBuilder};
 use bevy::prelude::*;
 
 pub fn setup(builder: &mut SceneBuilder) {
@@ -7,67 +6,86 @@ pub fn setup(builder: &mut SceneBuilder) {
 
     builder.set_background_color(Color::rgb(0.03, 0.03, 0.03));
 
-    builder.set_min_view_range(6.0);
+    // spawning player
+    builder.set_spawn_point_xy(21.5, 3., PlayerIndex::SinglePlayer);
 
-    builder.set_spawn_point_xy(1.5, 1.0, PlayerIndex::SinglePlayer);
-    builder.set_spawn_point_xy(0.9, 1.0, PlayerIndex::TwoPlayers(0));
-    builder.set_spawn_point_xy(2.3, 1.0, PlayerIndex::TwoPlayers(1));
+    // spawning walls
+    // 1
+    builder.spawn_wall_from_to_xy(-INF, 0., -INF, INF);
+    // 2
+    builder.spawn_wall_from_to_xy(-INF, 8., -INF, 5.);
+    // 3
+    builder.spawn_wall_from_to_xy(-INF, 8., -INF, 0.);
+    // 4
+    builder.spawn_wall_from_to_xy(10., 17., -INF, 5.);
+    // 5
+    builder.spawn_wall_from_to_xy(17., INF, -INF, 2.);
+    // 6
+    builder.spawn_wall_from_to_xy(24., INF, -INF, INF);
+    // 7
+    builder.spawn_wall_from_to_xy(14., INF, 12., INF);
+    // 8
+    builder.spawn_wall_from_to_xy(19., 21., 10., INF);
+    // 9
+    builder.spawn_wall_from_to_xy(11., INF, 14., INF);
+    // 10
+    builder.spawn_wall_from_to_xy(-INF, INF, 16., INF);
+    // 11
+    builder.spawn_wall_from_to_xy(-INF, 7., 10., 10.5);
+    // 12
+    builder.spawn_wall_from_to_xy(-INF, 3., 9., 10.5);
 
-    // 1 - 7
-    builder.spawn_wall_from_to(Vec2::new(-INF, -INF), Vec2::new(0.0, INF));
-    builder.spawn_wall_from_to(Vec2::new(-1.0, -4.0), Vec2::new(3.0, -1.0));
-    builder.spawn_wall_from_to(Vec2::new(-1.0, 6.0), Vec2::new(10.0, INF));
-    builder.spawn_wall_from_to(Vec2::new(-1.0, -3.0), Vec2::new(12.0, -INF));
-    builder.spawn_wall_from_to(Vec2::new(9.0, 1.0), Vec2::new(10.0, 20.0));
-    builder.spawn_wall_from_to(Vec2::new(9.0, 7.0), Vec2::new(16.0, INF));
-    builder.spawn_wall_from_to(Vec2::new(5.0, 1.0), Vec2::new(7.0, 1.5));
-
-    // box 1-3
-    builder.spawn_box(
-        Combobox::new(1.0, ComboboxType::Standard { group: 1 }),
-        Vec2::new(6.5, 2.0),
+    // spawning boxes
+    // 1
+    builder.spawn_box_xy(
+        Combobox::new(1., ComboboxType::Standard { group: 2 }),
+        3.5,
+        5.5,
     );
-    /*builder.spawn_box(
-        Combobox::new(1.0, ComboboxType::Buff(3.0)),
-        Vec2::new(8.0, -2.5),
+    // 2
+    builder.spawn_box_xy(
+        Combobox::new(1., ComboboxType::Standard { group: 2 }),
+        5.5,
+        5.5,
     );
-    builder.spawn_box(
-        Combobox::new(1.0, ComboboxType::Standard { group: 1 }),
-        Vec2::new(12.0, -2.5),
-    );*/
-
-    builder.spawn_door(Vec2::new(12.0, -2.0), 2.0, SceneDirection::Down, 1, 0);
-    builder.spawn_button(Vec2::new(8.0, -2.5), SceneDirection::Up, 1);
-
-    // 8 - 15
-    builder.spawn_wall_from_to(Vec2::new(15.0, -4.0), Vec2::new(17.0, -1.0));
-    builder.spawn_wall_from_to(Vec2::new(15.0, 1.5), Vec2::new(18.0, 2.65));
-    builder.spawn_wall_from_to(Vec2::new(12.0, -3.3), Vec2::new(15.0, -INF));
-    builder.spawn_wall_from_to(Vec2::new(17.0, 0.2), Vec2::new(28.0, 2.0));
-    builder.spawn_wall_from_to(Vec2::new(16.0, 10.0), Vec2::new(INF, INF));
-    builder.spawn_wall_from_to(Vec2::new(22.0, 6.0), Vec2::new(23.0, 30.0));
-    builder.spawn_wall_from_to(Vec2::new(18.0, 5.0), Vec2::new(20.0, 5.5));
-    builder.spawn_wall_from_to(Vec2::new(26.0, 0.0), Vec2::new(28.0, 6.45));
-
-    // box 4 - 6
-    builder.spawn_box(
-        Combobox::new(1.0, ComboboxType::Standard { group: 2 }),
-        Vec2::new(19.0, 6.0),
+    // 3
+    builder.spawn_box_xy(
+        Combobox::new(1., ComboboxType::Standard { group: 1 }),
+        13.5,
+        5.5,
     );
-    builder.spawn_box(
-        Combobox::new(1.0, ComboboxType::Standard { group: 2 }),
-        Vec2::new(25.5, 2.5),
-    );
-    builder.spawn_box(
-        Combobox::new(1.0, ComboboxType::Standard { group: 2 }),
-        Vec2::new(27.0, 7.0),
+    // 4
+    builder.spawn_box_xy(
+        Combobox::new(1., ComboboxType::Standard { group: 1 }),
+        22.5,
+        2.5,
     );
 
-    // 16 - 19
-    builder.spawn_wall_from_to(Vec2::new(32.0, -INF), Vec2::new(INF, INF));
-    builder.spawn_wall_from_to(Vec2::new(15.0, -INF), Vec2::new(INF, -9.0));
-    builder.spawn_wall_from_to(Vec2::new(20.0, -6.0), Vec2::new(26.0, -4.2));
-    builder.spawn_wall_from_to(Vec2::new(30.0, 6.0), Vec2::new(33.0, 20.0));
+    // spawning elevators
+    let elevator_height = 0.1;
+    // 1
+    builder.spawn_elevator_xy(
+        9.,
+        0. + elevator_height,
+        9.,
+        5. - elevator_height,
+        ElevatorType::Loop {
+            period: 4.,
+            current: 0.,
+        },
+    );
+    // 2
+    builder.spawn_elevator_xy(
+        18.,
+        2. + elevator_height,
+        18.,
+        5. - elevator_height,
+        ElevatorType::Loop {
+            period: 4.,
+            current: 0.,
+        },
+    );
 
-    builder.set_finish_point(Vec2::new(23.0, -2.2));
+    // spawning finish
+    builder.set_finish_point_xy(4., 12.5);
 }
