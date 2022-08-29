@@ -59,13 +59,14 @@ fn restart_on_out_of_boundaries(
             if let Some(rect) = boundaries.rect {
                 p.x < rect.min.x - 100.0
                     || p.x > rect.max.x + 100.0
-                    || p.y < rect.min.x - 100.0
-                    || p.y > rect.max.x + 100.0
+                    || p.y < rect.min.y - 100.0
+                    || p.y > rect.max.y + 100.0
             } else {
                 p.length() > 10000.0
             }
         })
     {
+
         level_state.restart().unwrap();
     }
 }

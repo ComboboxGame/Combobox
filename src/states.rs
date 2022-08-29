@@ -5,6 +5,7 @@ pub enum GuiState {
     LevelSelection,
     Level,
     LevelCompleted,
+    Credits,
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Hash, Copy)]

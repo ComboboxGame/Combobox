@@ -6,7 +6,7 @@ use crate::Vec2;
 pub fn setup(builder: &mut SceneBuilder) {
     const INF: f32 = 90.0;
 
-    builder.set_boundaries(-13.0, 28.0, -60.0, 10.0);
+    builder.set_boundaries(-13.0, 28.0, -48.0, 10.0);
 
     builder.set_min_view_range(6.5);
 
@@ -49,7 +49,7 @@ pub fn setup(builder: &mut SceneBuilder) {
     builder.spawn_wall_from_to_xy(-INF, INF, -INF, -44.0);
 
 
-    builder.set_spawn_point_xy(-7.8, -2.0, PlayerIndex::SinglePlayer);
+    builder.set_spawn_point_xy(-7.0, 2.0, PlayerIndex::SinglePlayer);
     builder.set_spawn_point_xy(-7.0, 2.0, PlayerIndex::TwoPlayers(0));
     builder.set_spawn_point_xy(-5.5, 2.0, PlayerIndex::TwoPlayers(1));
 

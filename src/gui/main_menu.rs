@@ -84,6 +84,9 @@ fn interaction(
                 MainMenuButton::Play => {
                     gui_state.set(GuiState::LevelSelection).unwrap();
                 }
+                MainMenuButton::Credits => {
+                    gui_state.set(GuiState::Credits).unwrap();
+                }
                 _ => {}
             },
             _ => {}
@@ -296,7 +299,7 @@ fn setup(
                                     .load("images/buttons/credits-button.png")
                                     .into(),
                                 100.0,
-                                MainMenuButton::Settings,
+                                MainMenuButton::Credits,
                             );
                         });
                 });
