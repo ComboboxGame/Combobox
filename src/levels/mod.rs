@@ -105,7 +105,7 @@ fn finish_level(
         *timer += time.delta_seconds();
         if *timer > 1.0 {
             *timer = 0.0;
-            audio.play(assets.load("audio/finish.ogg")).with_volume(0.1);
+            audio.play(assets.load("audio/finish.ogg")).with_volume(0.8);
             gui_state.set(GuiState::LevelCompleted).unwrap();
             ambient_light.color = Color::WHITE * 0.3;
             //camera_state.set(CameraState::None).unwrap();
