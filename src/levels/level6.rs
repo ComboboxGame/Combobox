@@ -8,6 +8,8 @@ use crate::{
 pub fn setup(builder: &mut SceneBuilder) {
     const INF: f32 = 70.0;
 
+    builder.set_audio("audio/level6.ogg");
+
     builder.set_background_color(Color::rgb(0.03, 0.03, 0.03));
 
     // spawning player
@@ -98,11 +100,11 @@ pub fn setup(builder: &mut SceneBuilder) {
     // 5
     builder.spawn_box_xy(Combobox::new(1., ComboboxType::Undo), 29.5, 11.5);
 
-    // spawn doors
+    // spawning doors
     builder.spawn_door_xy(19.5, 4.5, 3., SceneDirection::Up, 1, 0);
     builder.spawn_door_xy(34.5, 11.5, 3., SceneDirection::Up, 2, 0);
 
-    // spawn buttons
+    // spawning buttons
     builder.spawn_button_xy(13.5, 9.5, SceneDirection::Down, 1);
     builder.spawn_button_xy(26., 3.5, SceneDirection::Up, 2);
 

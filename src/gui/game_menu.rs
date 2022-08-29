@@ -36,7 +36,7 @@ fn interaction(
                 GameMenuButton::Back => {
                     // Go back to level selection
                     level_state.set(LevelState::None).unwrap();
-                    audio_state.set(AudioState::None).unwrap();
+                    audio_state.set(AudioState::Menu).unwrap();
                     gui_state.set(GuiState::LevelSelection).unwrap();
                     camera_state.set(CameraState::None).unwrap();
                 }
