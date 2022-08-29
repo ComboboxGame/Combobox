@@ -12,6 +12,8 @@ pub fn setup(builder: &mut SceneBuilder) {
 
     builder.set_background_color(Color::rgb(0.03, 0.03, 0.03));
 
+    builder.set_boundaries(-20.0, 24.0, -13.5, 20.0);
+
     builder.set_min_view_range(7.0);
     builder.set_ambient_light(Color::BLACK);
 
@@ -44,7 +46,7 @@ pub fn setup(builder: &mut SceneBuilder) {
     builder.spawn_wall_from_to_xy(-INF, -11.8, 4., 5.);
     // 16-20
     builder.spawn_wall_from_to_xy(-INF, -12., 3., 4.);
-    builder.spawn_wall_from_to_xy(-10., 15., -5., -4.);
+    builder.spawn_wall_from_to_xy(-10., 15., -5.5, -5.);
     builder.spawn_wall_from_to_xy(13., 15., -5., 4.);
     builder.spawn_wall_from_to_xy(0., 15., 0., 4.);
     builder.spawn_wall_from_to_xy(0., 2., 0., 5.);
@@ -111,13 +113,13 @@ pub fn setup(builder: &mut SceneBuilder) {
     );
     // 11-15
     builder.spawn_box_xy(
-        Combobox::new(1., ComboboxType::Lamp { color: Color::RED }),
+        Combobox::new(1.4, ComboboxType::Lamp { color: Color::RED }),
         13.5,
         -11.5,
     );
     builder.spawn_box_xy(
         Combobox::new(
-            1.,
+            1.4,
             ComboboxType::Lamp {
                 color: Color::GREEN,
             },
@@ -126,13 +128,13 @@ pub fn setup(builder: &mut SceneBuilder) {
         -11.5,
     );
     builder.spawn_box_xy(
-        Combobox::new(1., ComboboxType::Lamp { color: Color::BLUE }),
+        Combobox::new(1.4, ComboboxType::Lamp { color: Color::BLUE }),
         13.5,
         -12.5,
     );
     builder.spawn_box_xy(
         Combobox::new(
-            1.,
+            1.4,
             ComboboxType::Lamp {
                 color: Color::YELLOW,
             },
@@ -158,7 +160,7 @@ pub fn setup(builder: &mut SceneBuilder) {
     builder.spawn_button_xy(-7.5, -2.5, SceneDirection::Up, 1);
     builder.spawn_button_xy(6.5, 9.5, SceneDirection::Down, 2);
     for i in 0..6 {
-        builder.spawn_button_xy(1.5 + i as f32 * 2., -3.5, SceneDirection::Up, 0);
+        builder.spawn_button_xy(1.5 + i as f32 * 2., -4.5, SceneDirection::Up, 0);
         builder.spawn_button_xy(1.5 + i as f32 * 2., -11.5, SceneDirection::Up, 2_u32.pow(2 + i));
     }
     
