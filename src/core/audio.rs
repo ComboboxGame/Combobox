@@ -55,7 +55,7 @@ fn play_background_music(
         if let Some(music) = &background_music.0 {
             audio
                 .play(assets.load(PathBuf::from(music.clone())))
-                .with_volume(0.1)
+                .with_volume(0.2)
                 .looped()
                 .handle();
         }

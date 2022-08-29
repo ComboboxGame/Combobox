@@ -26,7 +26,7 @@ pub fn setup(builder: &mut SceneBuilder) {
     // 11 - 15
     builder.spawn_wall_from_to_xy(21.0, 23.0, 0.0, 5.4);
     builder.spawn_wall_from_to_xy(23.0, 29.0, 2.0, 4.0);
-    builder.spawn_wall_from_to_xy(21.0, 23.0, 8.0, 14.0);
+    builder.spawn_wall_from_to_xy(21.0, 23.0, 8.5, 14.0);
     builder.spawn_wall_from_to_xy(20.0, INF, 11.0, INF);
     builder.spawn_wall_from_to_xy(31.0, INF, 9.0, INF);
 
@@ -63,7 +63,7 @@ pub fn setup(builder: &mut SceneBuilder) {
         4.5,
     );
 
-    builder.spawn_box_xy(Combobox::new(1.0, ComboboxType::Gravity), 27.5, 4.5);
+    // builder.spawn_box_xy(Combobox::new(1.0, ComboboxType::Gravity), 27.5, 4.5);
 
     let mut undo = Combobox::new(1.0, ComboboxType::Undo);
     undo.local_gravity = Some(Vec2::X);
