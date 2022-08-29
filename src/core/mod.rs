@@ -29,5 +29,14 @@ impl Plugin for CorePlugin {
         app.add_plugin(CameraPlugin);
         app.add_plugin(AudioPlugin);
         app.add_plugin(SceneObjectsPlugin);
+
+        app.insert_resource(RapierConfiguration {
+            timestep_mode: TimestepMode::Variable {
+                max_dt: 1.0 / 30.0,
+                time_scale: 1.0,
+                substeps: 1,
+            },
+            ..default()
+        });
     }
 }

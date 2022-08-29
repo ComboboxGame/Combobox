@@ -14,7 +14,7 @@ pub fn setup(builder: &mut SceneBuilder) {
 
     builder.set_boundaries(-20.0, 24.0, -13.5, 20.0);
 
-    builder.set_min_view_range(7.0);
+    builder.set_min_view_range(8.0);
     builder.set_ambient_light(Color::BLACK);
 
     // spawning player
@@ -52,7 +52,7 @@ pub fn setup(builder: &mut SceneBuilder) {
     builder.spawn_wall_from_to_xy(0., 2., 0., 5.);
     // 21-25
     builder.spawn_wall_from_to_xy(-3., 0., -8., 2.);
-    builder.spawn_wall_from_to_xy(-6.2, 15., 0., 2.);
+    builder.spawn_wall_from_to_xy(-6.2, 15., 0.7, 2.);
     builder.spawn_wall_from_to_xy(-8., -6., 2., 5.);
     builder.spawn_wall_from_to_xy(-10., -6., 3., 5.);
     builder.spawn_wall_from_to_xy(-10.2, -6., 4., 5.);
@@ -111,11 +111,12 @@ pub fn setup(builder: &mut SceneBuilder) {
         5.5,
         -2.5,
     );
+
     // 11-15
     builder.spawn_box_xy(
         Combobox::new(1.4, ComboboxType::Lamp { color: Color::RED }),
-        13.5,
-        -11.5,
+        13.3,
+        -10.0,
     );
     builder.spawn_box_xy(
         Combobox::new(
@@ -125,12 +126,12 @@ pub fn setup(builder: &mut SceneBuilder) {
             },
         ),
         14.5,
-        -11.5,
+        -10.0,
     );
     builder.spawn_box_xy(
-        Combobox::new(1.4, ComboboxType::Lamp { color: Color::BLUE }),
-        13.5,
-        -12.5,
+        Combobox::new(1.4, ComboboxType::Lamp { color: Color::BLUE * 1.3 }),
+        13.3,
+        -11.3,
     );
     builder.spawn_box_xy(
         Combobox::new(
@@ -140,12 +141,12 @@ pub fn setup(builder: &mut SceneBuilder) {
             },
         ),
         14.5,
-        -12.5,
+        -11.3,
     );
     builder.spawn_box_xy(Combobox::new(1., ComboboxType::Undo), 12.5, 6.5);
 
     // spawning doors
-    builder.spawn_door_xy(-5.5, -1.5, 3., SceneDirection::Down, 1, 0);
+    builder.spawn_door_xy(-5.5, -1.0, 4., SceneDirection::Down, 1, 0);
     builder.spawn_door_xy(10.5, 5.5, 3., SceneDirection::Down, 2, 0);
     builder.spawn_door_xy(
         -2.5,
