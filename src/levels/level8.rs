@@ -5,6 +5,8 @@ use bevy::prelude::Color;
 pub fn setup(builder: &mut SceneBuilder) {
     const INF: f32 = 60.0;
 
+    builder.set_audio("audio/level8.ogg");
+
     builder.set_min_view_range(8.0);
     builder.set_ambient_light(Color::BLACK);
 

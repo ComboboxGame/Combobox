@@ -10,7 +10,6 @@ pub enum GuiState {
 
 #[derive(Clone, PartialEq, Eq, Debug, Hash, Copy)]
 pub enum AudioState {
-    None,
     Menu,
     Level,
 }

@@ -228,12 +228,9 @@ fn setup(
 
 fn cleanup(
     mut commands: Commands,
-    //  todo music: mut background_music: ResMut<BackgroundMusic>,
     roots: Query<Entity, With<LevelRoot>>,
     mut clear_color: ResMut<ClearColor>,
 ) {
-    // todo music: background_music.0 = Some("audio/main_menu_background.ogg".to_string());
-
     for root in roots.iter() {
         commands.entity(root).despawn_recursive();
     }
