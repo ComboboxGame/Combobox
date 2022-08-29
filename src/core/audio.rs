@@ -2,11 +2,13 @@ use std::{path::PathBuf, time::Duration};
 
 use bevy::{
     prelude::{
-        App, AssetServer, Assets, Commands, Entity, Handle, Local, Plugin, Query, Res, ResMut,
+        App, AssetServer, Assets, Commands, Entity, Handle, Local, Plugin, Query, Res, ResMut, SystemSet,
     },
     utils::{HashMap, Instant},
 };
 use bevy_kira_audio::{Audio, AudioControl, AudioEasing, AudioInstance, AudioTween};
+
+use crate::states::AudioState;
 
 use super::Player;
 
@@ -25,16 +27,18 @@ pub struct AudioPlugin;
 
 impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(setup_background_music);
+        app.add_system_set(SystemSet::on_enter(AudioState::Menu).with_system(setup_menu_music));
         app.add_system(play_background_music);
         app.add_system(play_player_movement_sound);
+
+        app.insert_resource(BackgroundMusic(Some(
+            "audio/main_menu_background.ogg".to_string(),
+        )));
     }
 }
 
-fn setup_background_music(mut commands: Commands) {
-    commands.insert_resource(BackgroundMusic(Some(
-        "audio/main_menu_background.ogg".to_string(),
-    )));
+fn setup_menu_music(mut background_music: ResMut<BackgroundMusic>) {
+    background_music.0 = Some("audio/main_menu_background.ogg".to_string());
 }
 
 fn play_background_music(
@@ -42,24 +46,18 @@ fn play_background_music(
     audio: Res<Audio>,
     assets: Res<AssetServer>,
     background_music: Res<BackgroundMusic>,
-    background_music_handle: Option<Res<BackgroundMusicHandle>>,
     mut audio_instances: ResMut<Assets<AudioInstance>>,
 ) {
     if background_music.is_changed() {
-        if let Some(handle) = background_music_handle {
-            if let Some(instance) = audio_instances.get_mut(&handle.0) {
-                instance.stop(AudioTween::new(Duration::from_secs(1), AudioEasing::Linear));
-            }
-            commands.remove_resource::<BackgroundMusicHandle>();
+        for (_, instance) in audio_instances.iter_mut() {
+            instance.stop(AudioTween::new(Duration::from_secs(1), AudioEasing::Linear));
         }
         if let Some(music) = &background_music.0 {
-            let handle = audio
+            audio
                 .play(assets.load(PathBuf::from(music.clone())))
-                .with_volume(0.8)
+                .with_volume(0.1)
                 .looped()
                 .handle();
-
-            commands.insert_resource(BackgroundMusicHandle(handle));
         }
     }
 }
@@ -92,7 +90,8 @@ fn play_player_movement_sound(
                 let handle = audio
                     .play(assets.load("audio/movement.ogg"))
                     .looped()
-                    .with_playback_rate(2.)
+                    .with_playback_rate(1.8)
+                    .with_volume(2.)
                     .handle();
                 let status = PlayerStatus {
                     handle,

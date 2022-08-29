@@ -8,10 +8,15 @@ use crate::{
 pub fn setup(builder: &mut SceneBuilder) {
     const INF: f32 = 60.0;
 
+    builder.set_audio("audio/level9.ogg");
+
     builder.set_background_color(Color::rgb(0.03, 0.03, 0.03));
 
     // spawning player
     builder.set_spawn_point_xy(-4.5, -5., PlayerIndex::SinglePlayer);
+
+    builder.set_spawn_point_xy(-3.5, -5., PlayerIndex::TwoPlayers(0));
+    builder.set_spawn_point_xy(-5.5, -5., PlayerIndex::TwoPlayers(1));
 
     // spawning walls
     // 1

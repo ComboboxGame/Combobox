@@ -5,6 +5,8 @@ use crate::core::{Combobox, ComboboxType, PlayerIndex, SceneBuilder};
 pub fn setup(builder: &mut SceneBuilder) {
     const INF: f32 = 60.0;
 
+    builder.set_audio("audio/level4.ogg");
+
     builder.set_background_color(Color::rgb(0.03, 0.03, 0.03));
 
     // spawning player

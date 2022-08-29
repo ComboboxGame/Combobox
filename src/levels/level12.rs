@@ -6,6 +6,8 @@ use crate::Vec2;
 pub fn setup(builder: &mut SceneBuilder) {
     const INF: f32 = 90.0;
 
+    builder.set_audio("audio/level12git .ogg");
+
     builder.set_boundaries(-13.0, 28.0, -60.0, 10.0);
 
     builder.set_min_view_range(6.5);

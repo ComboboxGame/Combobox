@@ -6,6 +6,8 @@ use crate::Vec2;
 pub fn setup(builder: &mut SceneBuilder) {
     const INF: f32 = 60.0;
 
+    builder.set_audio("audio/level10.ogg");
+
     builder.set_min_view_range(10.0);
     builder.set_ambient_light(Color::BLACK);
 

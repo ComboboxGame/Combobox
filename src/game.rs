@@ -23,7 +23,7 @@ impl Plugin for ComboboxGamePlugin {
         } else {
             app.insert_resource(Msaa { samples: 1 });
             app.add_state(GuiState::MainScreen);
-            app.add_state(AudioState::None);
+            app.add_state(AudioState::Menu);
             app.add_state(LevelState::None);
             app.add_state(CameraState::None);
         }

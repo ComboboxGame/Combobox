@@ -8,6 +8,8 @@ use crate::{
 pub fn setup(builder: &mut SceneBuilder) {
     const INF: f32 = 70.0;
 
+    builder.set_audio("audio/level6.ogg");
+
     builder.set_background_color(Color::rgb(0.03, 0.03, 0.03));
 
     // spawning player

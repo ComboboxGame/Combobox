@@ -5,6 +5,8 @@ use crate::core::{Combobox, ComboboxType, PlayerIndex, SceneBuilder};
 pub fn setup(builder: &mut SceneBuilder) {
     const INF: f32 = 60.0;
 
+    builder.set_audio("audio/level2.ogg");
+
     builder.set_min_view_range(8.0);
     builder.set_background_color(Color::rgb(0.03, 0.03, 0.03));
 
