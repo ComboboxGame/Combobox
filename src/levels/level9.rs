@@ -10,6 +10,8 @@ pub fn setup(builder: &mut SceneBuilder) {
 
     builder.set_audio("audio/level9.ogg");
 
+    builder.set_min_view_range(7.0);
+
     builder.set_background_color(Color::rgb(0.03, 0.03, 0.03));
 
     // spawning player
@@ -132,15 +134,15 @@ pub fn setup(builder: &mut SceneBuilder) {
     );
     // 10
     builder.spawn_box_xy(
-        Combobox::new(1., ComboboxType::Standard { group: 1 }),
-        29.,
-        0.5,
+        Combobox::new(0.9, ComboboxType::Standard { group: 1 }),
+        29.1,
+        0.0,
     );
     // 11
     builder.spawn_box_xy(
         Combobox::new(0.9, ComboboxType::Direction { direction: Vec2::Y }),
-        27.5,
-        0.5,
+        27.7,
+        0.0,
     );
     // 12
     builder.spawn_box_xy(

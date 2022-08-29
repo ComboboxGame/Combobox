@@ -46,7 +46,7 @@ fn update(
             let origin = transform.translation.truncate()
                 + direction_down.perp()
                     * Elevator::WIDTH
-                    * ((i as f32 / (intervals - 1) as f32) - 0.5);
+                    * ((i as f32 / (intervals - 1) as f32) - 0.5) * 0.95;
             let query_filter = QueryFilter::new().groups(collision_groups::ELEVATOR_I);
 
             if let Some((_, v)) = context.cast_ray(
