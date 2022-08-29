@@ -39,8 +39,10 @@ impl ComboboxBundle {
             ComboboxType::Standard { group } => {
                 if group == 1 {
                     Color::rgb_u8(103, 245, 124)
-                } else {
+                } else if group == 2 {
                     Color::rgb_u8(242, 176, 90)
+                } else {
+                    Color::rgb_u8(90, 176, 242)
                 }
             }
             ComboboxType::Buff(_) => Color::rgb_u8(50, 91, 227),
