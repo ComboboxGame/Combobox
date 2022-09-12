@@ -1,7 +1,9 @@
 # Combobox
 
-Our epic indie game made for [Bevy Jam #2](https://itch.io/jam/bevy-jam-2)!
+Our game made for [Bevy Jam #2](https://itch.io/jam/bevy-jam-2)!
+
+P.S. Combobox game got **4th** /85 place!
 
 # Check out our current demo
 
-Demo is hosted on github pages and is accessible [here](https://comboboxgame.github.io/Combobox/).
+Demo can be found on [itches.io](https://combobox-game.itch.io/combobox) or on [github pages](https://comboboxgame.github.io/Combobox/)
